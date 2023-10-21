@@ -26,7 +26,7 @@ public class MainAnalyzer {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
             this.project = file;
-            astGenerator.generateAST(this.fileList);
+            astGenerator.generateAST(filePath);
             return true;
         } else {
             return false;
