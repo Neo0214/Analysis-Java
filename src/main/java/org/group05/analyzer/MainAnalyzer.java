@@ -33,8 +33,6 @@ public class MainAnalyzer {
         }
     }
 
-
-
     public void methodQuery(String methodName, String className, String depth) {
         // use MethodAnalyzer to do method query
         MethodAnalyzer methodAnalyzer = new MethodAnalyzer();

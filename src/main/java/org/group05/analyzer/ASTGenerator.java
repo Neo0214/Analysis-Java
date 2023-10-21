@@ -105,36 +105,9 @@ public class ASTGenerator {
         }
     }
 
-    public void checkInvokeRelation(String className ,String methodName){
-
-    }
-
     public static void generateAST(String filePath) {
         ASTGenerator analyzer = new ASTGenerator();
-        Scanner scanner = new Scanner(System.in);
-        String inputMethodName = "";
-        String inputClassName = "";
-        int flag = 1;
-        // 将需要分析的项目放入D盘的ProjectToAnalyze文件夹中（包含多个java文件）
         analyzer.loadProject(filePath);
-        System.out.print(analyzer.methodCallGraph);
-
-        while(flag == 1){
-            System.out.println("请输入要查询的类名：");
-            inputClassName = scanner.next();
-            System.out.println("请输入要查询的方法名：");
-            inputMethodName = scanner.next();
-
-            // 在分析后，调用分析类的查询方法来获取用户想要查询的调用关系
-            analyzer.checkInvokeRelation(inputClassName, inputMethodName);
-            // 根据用户输入决定循环是否继续
-            System.out.println("输入0以终止查询，输入1以继续查询");
-            flag = scanner.nextInt();
-            if(flag == 1)
-                continue;
-            else
-                break;
-        }
-        scanner.close();
+        System.out.println(analyzer.methodCallGraph); //test
     }
 }
