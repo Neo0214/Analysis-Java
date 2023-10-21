@@ -1,8 +1,13 @@
 package org.group05.analyzer;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ast.CompilationUnit;
 import java.util.Objects;
 
 // MainAnalyzer should make AST for files, I recommend to create thread for efficiency.
@@ -10,9 +15,10 @@ import java.util.Objects;
 public class MainAnalyzer {
     private File project;
     private ArrayList<String> fileList;
-
+    private ASTGenerator astGenerator;
     public MainAnalyzer(String filePath) {
         this.fileList= new ArrayList<>();
+        this.astGenerator = new ASTGenerator();
         setRootPath(filePath);
     }
 
@@ -20,14 +26,19 @@ public class MainAnalyzer {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
             this.project = file;
+            astGenerator.generateAST(this.fileList);
             return true;
         } else {
             return false;
         }
     }
 
+
+
     public void methodQuery(String methodName, String className, String depth) {
         // use MethodAnalyzer to do method query
+        MethodAnalyzer methodAnalyzer = new MethodAnalyzer();
+        methodAnalyzer.getCalls(methodName);
     }
 
     public void parameterQuery(String parameterName, String className) {
