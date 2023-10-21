@@ -30,7 +30,8 @@ public class UserInteraction {
         mainAnalyzer=new MainAnalyzer("");
         while (true){
             if (mode==Mode.EXEC){
-
+                String command=getInput();
+                execInstruction(command);
             }
             else if (mode==Mode.COMMAND){
                 // command mode can change project root path or quit the system
@@ -44,6 +45,49 @@ public class UserInteraction {
             }
         }
     }
+
+    /**
+     * isMethodQuery
+     * check if the command is method query
+     * @param command the command to be checked and exec by analyzer
+     * @return true if it is method query
+     */
+    private void execInstruction(String command){
+        if (command.equals("cmd")){
+            setMode(Mode.COMMAND);
+        }
+        else if (isMethodQuery(command)){
+            // do function query
+        }
+        else if (isParameterQuery(command)){
+            // do parameter query
+        }
+        else{
+            putMessage("Wrong instruction,correct it:'method method_name class_name depth_of_search' or 'parameter method_name class_name'\n");
+        }
+    }
+
+    /**
+     * isMethodQuery
+     * check if the command is method query
+     * @param command the command to be checked
+     * @return true if it is method query
+     */
+    private boolean isMethodQuery(String command){
+        String[] commandList=command.split(" ");
+        return commandList.length == 4 && commandList[0].equals("method");
+    }
+    /**
+     * isParameterQuery
+     * check if the command is parameter query
+     * @param command the command to be checked
+     * @return true if it is parameter query
+     */
+    private boolean isParameterQuery(String command){
+        String[] commandList=command.split(" ");
+        return commandList.length == 3 && commandList[0].equals("parameter");
+    }
+
 
     /**
      * cleanWork
@@ -113,6 +157,6 @@ public class UserInteraction {
 
     private void setMode(Mode mode){
         this.mode=mode;
-        putMessage("change to "+mode.toString()+" mode\n");
+        putMessage("now in "+mode.toString()+" mode\n");
     }
 }
