@@ -30,6 +30,7 @@ public class UserInteraction {
         mainAnalyzer=new MainAnalyzer("");
         while (true){
             if (mode==Mode.EXEC){
+                putMessage("Enter your command('method method_name class_name depth_of_search' or 'parameter method_name class_name'):\n");
                 String command=getInput();
                 execInstruction(command);
             }

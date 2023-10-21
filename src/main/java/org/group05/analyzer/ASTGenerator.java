@@ -51,15 +51,9 @@ public class ASTGenerator {
     // 加载Java项目文件并解析源代码
     public void loadProject(String projectPath) {
         File projectDirectory = new File(projectPath);
-        if (!projectDirectory.exists() || !projectDirectory.isDirectory()) {
-            System.err.println("Invalid directory!");
-            return;
-        }
+
         File[] javaFiles = projectDirectory.listFiles((dir, name) -> name.endsWith(".java"));
-        if (javaFiles == null || javaFiles.length == 0) {
-            System.err.println("No java file was found in current directory!");
-            return;
-        }
+
         for (File javaFile : javaFiles) {
             //printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
             System.out.println(javaFile);
