@@ -52,16 +52,17 @@ public class ASTGenerator {
     public void loadProject(String projectPath) {
         File projectDirectory = new File(projectPath);
         if (!projectDirectory.exists() || !projectDirectory.isDirectory()) {
-            System.err.println("指定的路径不是一个有效的目录。");
+            System.err.println("Invalid directory!");
             return;
         }
         File[] javaFiles = projectDirectory.listFiles((dir, name) -> name.endsWith(".java"));
         if (javaFiles == null || javaFiles.length == 0) {
-            System.err.println("在指定的目录中找不到Java源代码文件。");
+            System.err.println("No java file was found in current directory!");
             return;
         }
         for (File javaFile : javaFiles) {
-            printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
+            //printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
+            System.out.println(javaFile);
             parseJavaFile(javaFile);   //用于解析所有的javaFile并将解析结果填入方法调用图中
             printCallRelation(methodCallGraph);  //用于打印出方法调用图中显示的调用关系, {*可注释*}
         }
@@ -86,14 +87,13 @@ public class ASTGenerator {
             CompilationUnit cu = StaticJavaParser.parse(javaFile);
             // 创建一个访问者来查找方法调用关系
             new MethodCallVisitor().visit(cu, methodCallGraph);
-        }catch(FileNotFoundException e) {
+        } catch(FileNotFoundException e) {
             e.printStackTrace();
         }
     }
+
     // 打印全部方法调用关系（测试用）
     private void printCallRelation(Map<String, Map<String, Integer>> methodCallGraph ){
-
-
         //遍历HashMap的所有键(key)，即遍历记录下来的所有调用者类
         for (String callerClass : methodCallGraph.keySet()) {
             System.out.println("调用类 " + callerClass);
@@ -117,6 +117,7 @@ public class ASTGenerator {
         int flag = 1;
         // 将需要分析的项目放入D盘的ProjectToAnalyze文件夹中（包含多个java文件）
         analyzer.loadProject(filePath);
+        System.out.print(analyzer.methodCallGraph);
 
         while(flag == 1){
             System.out.println("请输入要查询的类名：");
