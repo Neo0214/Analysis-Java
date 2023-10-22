@@ -26,14 +26,12 @@ public class MainAnalyzer {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
             this.project = file;
-            astGenerator.generateAST(this.fileList);
+            astGenerator.generateAST(filePath);
             return true;
         } else {
             return false;
         }
     }
-
-
 
     public void methodQuery(String methodName, String className, String depth) {
         // use MethodAnalyzer to do method query

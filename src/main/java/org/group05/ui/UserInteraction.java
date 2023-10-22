@@ -9,7 +9,7 @@ import java.util.Scanner;
  * This class is responsible for handling user interaction.
  */
 public class UserInteraction {
-    private Mode mode;
+    private Mode mode;   //current mode
     private final Scanner scanner;
     private MainAnalyzer mainAnalyzer;
     /**
@@ -30,6 +30,7 @@ public class UserInteraction {
         mainAnalyzer=new MainAnalyzer("");
         while (true){
             if (mode==Mode.EXEC){
+                putMessage("Enter your command('method method_name class_name depth_of_search' or 'parameter method_name class_name'):\n");
                 String command=getInput();
                 execInstruction(command);
             }
@@ -46,11 +47,33 @@ public class UserInteraction {
         }
     }
 
+
     /**
-     * isMethodQuery
-     * check if the command is method query
+     * execCommand
+     * This method is used to check the input command and choose to switch to a particular mode
+     * @param command the command to be checked by UI to change its current mode
+     */
+    private void execCommand(String command){
+        if (command.equals("q")){
+            setMode(Mode.QUIT);
+        }
+        else{
+            // maybe this is path, check it
+            if(this.mainAnalyzer.setRootPath(command)){
+                System.out.print("cmd>set root path to "+command+"\n");
+                setMode(Mode.EXEC);
+            }
+            else{
+                putMessage("Wrong root path\n");
+            }
+        }
+    }
+
+
+    /**
+     * execInstruction
+     * This method is used in EXEC mode to send analyzer request
      * @param command the command to be checked and exec by analyzer
-     * @return true if it is method query
      */
     private void execInstruction(String command){
         if (command.equals("cmd")){
@@ -96,21 +119,6 @@ public class UserInteraction {
     private void cleanWork(){
 
     }
-    private void execCommand(String command){
-        if (command.equals("q")){
-            setMode(Mode.QUIT);
-        }
-        else{
-            // maybe this is path, check it
-            if(this.mainAnalyzer.setRootPath(command)){
-                System.out.print("cmd>set root path to "+command+"\n");
-                setMode(Mode.EXEC);
-            }
-            else{
-                putMessage("Wrong root path\n");
-            }
-        }
-    }
 
     /**
      * getInput
@@ -155,6 +163,10 @@ public class UserInteraction {
         System.out.print("cmd>Enter your java project path:\n");
     }
 
+    /**
+     * This method is used to set current mode
+     * @param mode the mode to set
+     */
     private void setMode(Mode mode){
         this.mode=mode;
         putMessage("now in "+mode.toString()+" mode\n");
