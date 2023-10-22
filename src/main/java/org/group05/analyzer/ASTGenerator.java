@@ -7,44 +7,69 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.BufferedReader;
 
-import java.util.Scanner;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
-
+import org.group05.analyzer.dataStructure.MethodNode;
 public class ASTGenerator {
-    //存储调用关系的HashMap数据结构: 调用类 -> [ 多个 ( 被调用方法 -> 被调用次数) ]
-    private Map<String, Map<String, Integer>> methodCallGraph; // 存储方法调用关系
-
+    private ArrayList<MethodNode> methodNodeList;
     //无参构造函数，新建一个空的哈希表分配给私有成员methodCallGraph，用以存储方法调用关系
     public ASTGenerator() {
-        methodCallGraph = new HashMap<>();
+        methodNodeList = new ArrayList<>();
     }
 
     //内部类，重写访问者适配器，完成对调用方法表达式的遍历
-    private static class MethodCallVisitor extends VoidVisitorAdapter<Map<String, Map<String, Integer>>> {
+    private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<MethodNode>> {
         @Override
-        public void visit(MethodCallExpr methodCallExpr, Map<String, Map<String, Integer>> methodCallGraph) {
-            // 获取调用方法的类名和方法名
+        public void visit(MethodCallExpr methodCallExpr, ArrayList<MethodNode> methodNodeList) {
+            // 获取被调用方法的类名和方法名
 
-            //getScope() 方法可以获取调用者对象，但得到的是一个Optional<Expression>对象，
-            //需要用一个Lamda表达式scope->scope.toString()来将其转换为字符串，如果为空就转换为空字符串
-            String callerClass = methodCallExpr.getScope().map(scope -> scope.toString()).orElse("");
-            //getNameAsString() 方法直接将 方法调用表达式 本身转化成字符串
+            //获取被调用方法的类名
+            String calledClass = methodCallExpr.getScope().map(scope -> scope.toString()).orElse("");
+            //获取被调用方法名
             String calledMethod = methodCallExpr.getNameAsString();
 
-            // 更新方法调用图
-            methodCallGraph.computeIfAbsent(callerClass, k -> new HashMap<>())
-                    .merge(calledMethod, 1, Integer::sum);
+            //获取主动调用方法的类名和方法名
 
-            super.visit(methodCallExpr, methodCallGraph);
+            //获取主动调用方法名
+            MethodDeclaration callingMethod = methodCallExpr.findAncestor(MethodDeclaration.class).orElse(null);
+            String callingMethodName = callingMethod != null ? callingMethod.getNameAsString() : "";
+            //获取主动调用类名
+            Optional<ClassOrInterfaceDeclaration> classDeclaration = methodCallExpr.findAncestor(ClassOrInterfaceDeclaration.class);
+            String callingMethodclass = classDeclaration.map(c -> c.getNameAsString()).orElse("");
+
+            //获取调用语句的参数
+            List<Expression> arguments = methodCallExpr.getArguments();
+            ArrayList<String> callArgs = new ArrayList<>();
+            for (Expression argument : arguments) {
+                callArgs.add(argument.toString());
+            }
+
+            //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
+            MethodNode callingMethodNode =new MethodNode(callingMethodName,callingMethodclass);
+            MethodNode calledMethodNode = new MethodNode(calledMethod,calledClass);
+            callingMethodNode.addCalledMethod(calledMethodNode,callArgs);
+            boolean callingSameFlag = false;
+            //merges two MethodNodes with the same MethodName and ClassName
+            for(MethodNode method : methodNodeList){
+                if(method.euqalsto(callingMethodNode)) {
+                    method.mergeCall(callingMethodNode);
+                    callingSameFlag = true;
+                }
+            }
+            //if this node has never been added before,then it should be added this time
+            if(callingSameFlag==false)
+                methodNodeList.add(callingMethodNode);
+
+            // 更新方法调用图
+            super.visit(methodCallExpr, methodNodeList);
         }
     }
 
@@ -58,7 +83,6 @@ public class ASTGenerator {
             //printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
             System.out.println(javaFile);
             parseJavaFile(javaFile);   //用于解析所有的javaFile并将解析结果填入方法调用图中
-            printCallRelation(methodCallGraph);  //用于打印出方法调用图中显示的调用关系, {*可注释*}
         }
     }
 
@@ -80,28 +104,18 @@ public class ASTGenerator {
         try{
             CompilationUnit cu = StaticJavaParser.parse(javaFile);
             // 创建一个访问者来查找方法调用关系
-            new MethodCallVisitor().visit(cu, methodCallGraph);
+            new MethodCallVisitor().visit(cu, methodNodeList);
         } catch(FileNotFoundException e) {
             e.printStackTrace();
-        }
-    }
-
-    // 打印全部方法调用关系（测试用）
-    private void printCallRelation(Map<String, Map<String, Integer>> methodCallGraph ){
-        //遍历HashMap的所有键(key)，即遍历记录下来的所有调用者类
-        for (String callerClass : methodCallGraph.keySet()) {
-            System.out.println("调用类 " + callerClass);
-            //获得该被调用类调用的方法
-            Map<String, Integer> calledMethods = methodCallGraph.get(callerClass);
-            for (String calledMethod : calledMethods.keySet()) {
-                System.out.println("  调用了 " + calledMethod + "方法" + calledMethods.get(calledMethod) + " 次");
-            }
         }
     }
 
     public static void generateAST(String filePath) {
         ASTGenerator analyzer = new ASTGenerator();
         analyzer.loadProject(filePath);
-        System.out.println(analyzer.methodCallGraph); //test
+        System.out.println("打印得到的方法调用关系如下：");
+        for(MethodNode method : analyzer.methodNodeList){
+            method.printMethodCalled();
+        }
     }
 }
