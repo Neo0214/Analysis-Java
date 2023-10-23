@@ -75,18 +75,7 @@ public class ASTGenerator {
         }
     }
 
-    // 加载Java项目文件并解析源代码
-    public void loadProject(String projectPath) {
-        File projectDirectory = new File(projectPath);
 
-        File[] javaFiles = projectDirectory.listFiles((dir, name) -> name.endsWith(".java"));
-
-        for (File javaFile : javaFiles) {
-            //printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
-            System.out.println(javaFile);
-            parseJavaFile(javaFile);   //用于解析所有的javaFile并将解析结果填入方法调用图中
-        }
-    }
 
     // 打印java代码源文件的所有内容（测试用）
     private void printJavaFile(File javaFile) {

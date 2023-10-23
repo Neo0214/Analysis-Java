@@ -16,6 +16,10 @@ public class MethodAnalyzer implements MethodInterface {
     }
 
     public MethodAnalyzer(ArrayList<CompilationUnit> cus) {
+        calc_data_structure(cus);
+    }
 
+    private void calc_data_structure(ArrayList<CompilationUnit> cus) {
+        // to do
     }
 }
