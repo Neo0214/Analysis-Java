@@ -4,6 +4,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Objects;
+
 public class MethodNode {
     //the name of this method
     private String MethodName;
@@ -12,7 +14,7 @@ public class MethodNode {
     //methods called by this method (stored in map)
     private ArrayList<CallRecord> CallRecords;
 
-    //constructor
+
     public  MethodNode(String MethodName,String ClassName)
     {
         setMethodName(MethodName);
@@ -24,10 +26,10 @@ public class MethodNode {
     public void addCalledMethod(MethodNode calledMethod,ArrayList<String>args) {
        CallRecords.add(new CallRecord(calledMethod,args));
     }
-    public void setClassName(String className) {
+    private void setClassName(String className) {
         ClassName = className;
     }
-    public void setMethodName(String methodName) {
+    private void setMethodName(String methodName) {
         MethodName = methodName;
     }
     public ArrayList<CallRecord> getMethodCalled() {
@@ -42,12 +44,7 @@ public class MethodNode {
 
     //judges if another MethodNode has the same MethodName and ClassName with this one
     public boolean euqalsto(MethodNode method){
-        if(this.getMethodName()==method.getMethodName()){
-            if(this.getClassName()==method.getClassName()){
-                return true;
-            }
-        }
-        return false;
+        return this.getMethodName().equals(method.getMethodName()) && this.getClassName().equals(method.getClassName());
     }
 
 

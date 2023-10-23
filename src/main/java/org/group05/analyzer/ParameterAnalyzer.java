@@ -1,5 +1,6 @@
 package org.group05.analyzer;
 
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import org.group05.service.ParameterInterface;
 
@@ -12,5 +13,9 @@ public class ParameterAnalyzer implements ParameterInterface {
 
     public ArrayList<MethodCallExpr> getCalledBy(MethodCallExpr query) {
         return null;
+    }
+
+    public ParameterAnalyzer(ArrayList<CompilationUnit> cus) {
+        
     }
 }

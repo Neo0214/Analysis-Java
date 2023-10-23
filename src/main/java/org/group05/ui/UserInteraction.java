@@ -17,8 +17,9 @@ public class UserInteraction {
      * default mode is output
      */
     public UserInteraction() {
-        putPrompt();
+        System.out.print("Welcome to the Java Project Analyzer!\n");
         setMode(Mode.COMMAND);
+        putPrompt();
         scanner=new Scanner(System.in);
     }
 
@@ -30,13 +31,13 @@ public class UserInteraction {
         mainAnalyzer=new MainAnalyzer("");
         while (true){
             if (mode==Mode.EXEC){
-                putMessage("Enter your command('method method_name class_name depth_of_search' or 'parameter method_name class_name'):\n");
+                //putMessage("Enter your command('method method_name class_name depth_of_search' or 'parameter method_name class_name'):\n");
                 String command=getInput();
                 execInstruction(command);
             }
             else if (mode==Mode.COMMAND){
                 // command mode can change project root path or quit the system
-                putMessage("Enter your command('project root path' for new project or 'q' for quit):\n");
+                //putMessage("Enter your command('project root path' for new project or 'q' for quit):\n");
                 String command=getInput();
                 execCommand(command);
             }
@@ -126,8 +127,9 @@ public class UserInteraction {
      * @return java.lang.String
      **/
     private String getInput(){
+        putMessage("");
         while (!scanner.hasNextLine()){
-        }
+        } // block when no input
         return scanner.nextLine();
     }
 
@@ -141,12 +143,10 @@ public class UserInteraction {
         if (mode==Mode.COMMAND){
             System.out.print("cmd>");
             System.out.print(str);
-            System.out.print("cmd>");
         }
         else if (mode==Mode.EXEC){
-            System.out.print(">>");
+            System.out.print("query>>");
             System.out.print(str);
-            System.out.print(">>");
         }
         else if (mode==Mode.QUIT){
             System.out.print("quiting......");
@@ -158,9 +158,8 @@ public class UserInteraction {
      * after prompt, it should change to input mode
      */
     private void putPrompt() {
-        System.out.print("Welcome to the Java Project Analyzer!\n");
-        System.out.print("cmd>press ESC at any time to command mode to change project path, etc.\n");
-        System.out.print("cmd>Enter your java project path:\n");
+        putMessage("press ESC at any time to command mode to change project path, etc.\n");
+        putMessage("Enter your java project path:\n");
     }
 
     /**
@@ -169,6 +168,5 @@ public class UserInteraction {
      */
     private void setMode(Mode mode){
         this.mode=mode;
-        putMessage("now in "+mode.toString()+" mode\n");
     }
 }

@@ -18,8 +18,10 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 import org.group05.analyzer.dataStructure.MethodNode;
+
 public class ASTGenerator {
     private ArrayList<MethodNode> methodNodeList;
+
     //无参构造函数，新建一个空的哈希表分配给私有成员methodCallGraph，用以存储方法调用关系
     public ASTGenerator() {
         methodNodeList = new ArrayList<>();
@@ -53,19 +55,19 @@ public class ASTGenerator {
             }
 
             //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
-            MethodNode callingMethodNode =new MethodNode(callingMethodName,callingMethodclass);
-            MethodNode calledMethodNode = new MethodNode(calledMethod,calledClass);
-            callingMethodNode.addCalledMethod(calledMethodNode,callArgs);
+            MethodNode callingMethodNode = new MethodNode(callingMethodName, callingMethodclass);
+            MethodNode calledMethodNode = new MethodNode(calledMethod, calledClass);
+            callingMethodNode.addCalledMethod(calledMethodNode, callArgs);
             boolean callingSameFlag = false;
             //merges two MethodNodes with the same MethodName and ClassName
-            for(MethodNode method : methodNodeList){
-                if(method.euqalsto(callingMethodNode)) {
+            for (MethodNode method : methodNodeList) {
+                if (method.euqalsto(callingMethodNode)) {
                     method.mergeCall(callingMethodNode);
                     callingSameFlag = true;
                 }
             }
             //if this node has never been added before,then it should be added this time
-            if(callingSameFlag==false)
+            if (callingSameFlag == false)
                 methodNodeList.add(callingMethodNode);
 
             // 更新方法调用图
@@ -87,7 +89,7 @@ public class ASTGenerator {
     }
 
     // 打印java代码源文件的所有内容（测试用）
-    private void printJavaFile(File javaFile){
+    private void printJavaFile(File javaFile) {
         System.out.println(javaFile);
         try (BufferedReader reader = new BufferedReader(new FileReader(javaFile))) {
             String line;
@@ -100,22 +102,27 @@ public class ASTGenerator {
     }
 
     // 解析Java源代码文件,将方法调用关系加入到方法调用图中
-    private void parseJavaFile(File javaFile) {
-        try{
+    private static CompilationUnit parseJavaFile(File javaFile) {
+        try {
             CompilationUnit cu = StaticJavaParser.parse(javaFile);
+            return cu;
             // 创建一个访问者来查找方法调用关系
-            new MethodCallVisitor().visit(cu, methodNodeList);
-        } catch(FileNotFoundException e) {
+            //new MethodCallVisitor().visit(cu, methodNodeList);
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    public static void generateAST(String filePath) {
-        ASTGenerator analyzer = new ASTGenerator();
-        analyzer.loadProject(filePath);
-        System.out.println("打印得到的方法调用关系如下：");
-        for(MethodNode method : analyzer.methodNodeList){
-            method.printMethodCalled();
+    public static ArrayList<CompilationUnit> generateAST(ArrayList<String> files) {
+        //ASTGenerator analyzer = new ASTGenerator();
+        //analyzer.loadProject(filePath);
+        //System.out.println("打印得到的方法调用关系如下：");
+        ArrayList<CompilationUnit> cus = new ArrayList<>();
+        for (String file : files) {
+            CompilationUnit cu=parseJavaFile(new File(file));
+            cus.add(cu);
         }
+        return cus;
     }
 }
