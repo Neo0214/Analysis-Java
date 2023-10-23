@@ -11,8 +11,10 @@ import java.util.*;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -21,8 +23,6 @@ import org.group05.analyzer.dataStructure.MethodNode;
 
 public class ASTGenerator {
     private ArrayList<MethodNode> methodNodeList;
-
-    //无参构造函数，新建一个空的哈希表分配给私有成员methodCallGraph，用以存储方法调用关系
     public ASTGenerator() {
         methodNodeList = new ArrayList<>();
     }
@@ -54,6 +54,17 @@ public class ASTGenerator {
                 callArgs.add(argument.toString());
             }
 
+            //获取被调用方法的形参
+            MethodDeclaration calledMethodDeclaration = (MethodDeclaration) methodCallExpr.resolve();
+            calledMethodDeclaration.getParameters();
+            NodeList<Parameter> parameters = calledMethodDeclaration.getParameters();
+            ArrayList<String> calledMethodParams = new ArrayList<>();
+            for (Parameter parameter : parameters) {
+                calledMethodParams.add(parameter.getNameAsString() + " : " + parameter.getTypeAsString());
+            }
+
+
+
             //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
             MethodNode callingMethodNode = new MethodNode(callingMethodName, callingMethodclass);
             MethodNode calledMethodNode = new MethodNode(calledMethod, calledClass);
@@ -75,18 +86,7 @@ public class ASTGenerator {
         }
     }
 
-    // 加载Java项目文件并解析源代码
-    public void loadProject(String projectPath) {
-        File projectDirectory = new File(projectPath);
 
-        File[] javaFiles = projectDirectory.listFiles((dir, name) -> name.endsWith(".java"));
-
-        for (File javaFile : javaFiles) {
-            //printJavaFile(javaFile);   //用于测试有没有得到javaFile, {*可注释*}
-            System.out.println(javaFile);
-            parseJavaFile(javaFile);   //用于解析所有的javaFile并将解析结果填入方法调用图中
-        }
-    }
 
     // 打印java代码源文件的所有内容（测试用）
     private void printJavaFile(File javaFile) {
