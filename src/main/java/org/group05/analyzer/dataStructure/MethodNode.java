@@ -60,7 +60,7 @@ public class MethodNode {
     public void printMethodCalled(){
         System.out.println("ClassName : "+ClassName+", MethodName : "+MethodName);
         for(CallRecord call : CallRecords){
-            MethodNode calledMethod = call.getCalledMethod();
+            MethodNode calledMethod = call.getCalleeMethod();
             ArrayList<String> calledArgs = call.getArguments();
             System.out.print("  calls : "+calledMethod.getMethodName()+" with args : ");
             for(String arg : calledArgs)
