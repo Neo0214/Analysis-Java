@@ -9,8 +9,18 @@ import java.util.ArrayList;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import org.group05.analyzer.dataStructure.MethodNode;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 // MainAnalyzer should make AST for files, I recommend to create thread for efficiency.
 // This part hasn't been implemented yet
@@ -37,6 +47,8 @@ public class MainAnalyzer {
             return false;
         }
     }
+
+
 
     public void methodQuery(String methodName, String className, String depth) {
         // use MethodAnalyzer to do method query
