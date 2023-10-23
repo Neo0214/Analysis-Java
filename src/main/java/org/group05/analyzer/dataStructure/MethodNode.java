@@ -11,14 +11,17 @@ public class MethodNode {
     private String MethodName;
     //the class this method belongs to
     private String ClassName;
-    //methods called by this method (stored in map)
+    //methods called by this method (stored in ArrayList)
     private ArrayList<CallRecord> CallRecords;
+    //formal arguments of this CallerMethod
+    private ArrayList<String> CallerArgs;
 
 
     public  MethodNode(String MethodName,String ClassName)
     {
         setMethodName(MethodName);
         setClassName(ClassName);
+        CallerArgs = new ArrayList<>();
         CallRecords = new ArrayList<>();
     }
 
@@ -32,6 +35,10 @@ public class MethodNode {
     private void setMethodName(String methodName) {
         MethodName = methodName;
     }
+    public void setCallerArgs(ArrayList<String> callerArgs) {
+        CallerArgs = callerArgs;
+    }
+
     public ArrayList<CallRecord> getMethodCalled() {
         return CallRecords;
     }
@@ -41,12 +48,14 @@ public class MethodNode {
     public String getMethodName() {
         return MethodName;
     }
-
-    //judges if another MethodNode has the same MethodName and ClassName with this one
-    public boolean euqalsto(MethodNode method){
-        return this.getMethodName().equals(method.getMethodName()) && this.getClassName().equals(method.getClassName());
+    public ArrayList<String> getCallerArgs() {
+        return CallerArgs;
     }
 
+    //judges if another MethodNode has the same MethodName, ClassName and CallerArgs with this one
+    public boolean euqalsto(MethodNode method){
+        return this.getMethodName().equals(method.getMethodName())&&this.getClassName().equals(method.getClassName());
+    }
 
     //merges another MethodNode which has the same ClassName and MethodName with this MethodNode
     public void mergeCall(MethodNode method){
@@ -58,7 +67,16 @@ public class MethodNode {
 
     //print the calling relation according to the saved information
     public void printMethodCalled(){
-        System.out.println("ClassName : "+ClassName+", MethodName : "+MethodName);
+        System.out.print("ClassName : "+ClassName+", MethodName : "+MethodName);
+        System.out.print(", CallerArgs : ");
+        for(String arg : CallerArgs){
+            System.out.print(arg);
+        }
+        if(CallerArgs.isEmpty()){
+            System.out.print("Null(not needed here)");
+        }
+        System.out.print('\n');
+
         for(CallRecord call : CallRecords){
             MethodNode calledMethod = call.getCalleeMethod();
             ArrayList<String> calledArgs = call.getArguments();

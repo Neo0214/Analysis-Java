@@ -72,21 +72,19 @@ public class ParameterAnalyzer implements ParameterInterface {
             }
 
             //获取被调用方法的形参
-            /*
-            MethodDeclaration calledMethodDeclaration = (MethodDeclaration) methodCallExpr.resolve();
-            calledMethodDeclaration.getParameters();
-            NodeList<Parameter> parameters = calledMethodDeclaration.getParameters();
-            ArrayList<String> calledMethodParams = new ArrayList<>();
-            for (Parameter parameter : parameters) {
-                calledMethodParams.add(parameter.getNameAsString() + " : " + parameter.getTypeAsString());
-            }
-            */
 
+            // 获取调用语句的发起调用者方法的形参列表
+            NodeList<Parameter> parameters = callingMethod.getParameters();
+            ArrayList<String> callerMethodParams = new ArrayList<>();
+            for (Parameter parameter : parameters) {
+                callerMethodParams.add(parameter.getNameAsString() + "(" + parameter.getTypeAsString()+')');
+            }
 
 
             //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
             MethodNode callingMethodNode = new MethodNode(callingMethodName, callingMethodclass);
             MethodNode calledMethodNode = new MethodNode(calledMethod, calledClass);
+            callingMethodNode.setCallerArgs(callerMethodParams);
             callingMethodNode.addCalledMethod(calledMethodNode, callArgs);
             boolean callingSameFlag = false;
 
