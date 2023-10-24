@@ -10,13 +10,11 @@ public class TransmissionClass {
     private String methodName;
 
     //Information of callees
-    private ArrayList<String> calleeName = new ArrayList<>();
-    private ArrayList<String> calleeParam = new ArrayList<>();
+    private ArrayList<MethodInfo> callee = new ArrayList<>();
     private ArrayList calleeDepth = new ArrayList<>();
 
     //Information of callers
-    private ArrayList<String> callerName = new ArrayList<>();
-    private ArrayList<String> callerParam = new ArrayList<>();
+    private ArrayList<MethodInfo> caller = new ArrayList<>();
     private ArrayList callerDepth = new ArrayList<>();
 
     public TransmissionClass(String queryname){
@@ -25,29 +23,21 @@ public class TransmissionClass {
     public void setMethodName(String name){
         this.methodName=name;
     }
-    public void addCallee(ArrayList<String> nameList, int depth){
-        if(!nameList.isEmpty()){
-            this.calleeName.addAll(nameList);
-            for(String i : nameList){
-                this.calleeDepth.add(depth);
-            }
-        }
+    public void addCallee(MethodInfo m, int depth){
+        this.callee.add(m);
+        this.calleeDepth.add(depth);
     }
-    public void addCaller(ArrayList<String> nameList, int depth){
-        if(!nameList.isEmpty()){
-            this.callerName.addAll(nameList);
-            for(String i : nameList){
-                this.callerDepth.add(depth);
-            }
-        }
+    public void addCaller(MethodInfo m, int depth){
+        this.caller.add(m);
+        this.callerDepth.add(depth);
     }
     public void print(){
         System.out.println("method:"+this.methodName);
         int d = 0;
         System.out.println("callee:");
-        if(!this.calleeName.isEmpty()){
-            for(String i : this.calleeName){
-                System.out.println(i + "  depth:" + calleeDepth.get(d));
+        if(!this.callee.isEmpty()){
+            for(MethodInfo i : this.callee){
+                System.out.println(i.getName() + "  depth:" + calleeDepth.get(d));
                 d++;
             }
         }
@@ -56,9 +46,9 @@ public class TransmissionClass {
         }
         d=0;
         System.out.println("caller:");
-        if(!this.callerName.isEmpty()){
-            for(String i : this.callerName){
-                System.out.println(i + "  depth:" + callerDepth.get(d));
+        if(!this.caller.isEmpty()){
+            for(MethodInfo i : this.caller){
+                System.out.println(i.getName() + "  depth:" + callerDepth.get(d));
                 d++;
             }
         }

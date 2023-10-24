@@ -21,6 +21,8 @@ import java.util.Optional;
 
 public class MethodAnalyzer {
     private ArrayList<ClassNode> classes;
+    private int myDepth;
+    private TransmissionClass myResult=new TransmissionClass("method");
 
     public MethodAnalyzer(ArrayList<CompilationUnit> cus) {
         this.classes = new ArrayList<>();
@@ -229,8 +231,7 @@ public class MethodAnalyzer {
         MethodInfo tempMethod=null;
         ArrayList<Index> tempCallee=new ArrayList<Index>();
         ArrayList<Index> tempCaller=new ArrayList<Index>();
-        int tempDepth=1;
-        TransmissionClass myResult=new TransmissionClass("method");
+        this.myDepth = depth;
 
         //First, find method according to the given command
         for (ClassNode myclass : this.classes) {
@@ -247,57 +248,52 @@ public class MethodAnalyzer {
         if(flag){
             tempCallee = tempMethod.getCallees();
             if(!tempCallee.isEmpty()){
-                myResult.addCallee(getMethodNameByIndex(tempCallee),1);
+                for(Index i : tempCallee){
+                    DFSGetCallee(i,1);
+                }
             }
             tempCaller = tempMethod.getCallers();
             if(!tempCaller.isEmpty()){
-                myResult.addCaller(getMethodNameByIndex(tempCaller),1);
+                for(Index i : tempCaller){
+                    DFSGetCaller(i,1);
+                }
             }
-        }
-
-        for(int d=2;d<=depth;d++){
-            if(!tempCallee.isEmpty()){
-                tempCallee=getMethodIndexByIndex(tempCallee,"callee");
-            }
-            if(!tempCaller.isEmpty()){
-                tempCaller=getMethodIndexByIndex(tempCaller,"caller");
-            }
-            myResult.addCallee(getMethodNameByIndex(tempCallee),d);
-            myResult.addCaller(getMethodNameByIndex(tempCaller),d);
         }
 
         myResult.print();
     }
 
-
-
-    public ArrayList<String> getMethodNameByIndex(ArrayList<Index> methodIndex){
-        ClassNode tempclass;
-        MethodInfo tempMethod;
-        ArrayList<String> nameList=new ArrayList<>();
-        for(Index myindex : methodIndex){
-            tempclass=this.classes.get(myindex.getClassIndex());
-            tempMethod=tempclass.getMethodByIndex(myindex.getMethodIndex());
-            nameList.add(tempMethod.getName());
-        }
-        return nameList;
+    public MethodInfo getMethodByIndex(Index methodIndex){
+        ClassNode tempclass=this.classes.get(methodIndex.getClassIndex());
+        return tempclass.getMethodByIndex(methodIndex.getMethodIndex());
     }
 
-    //to get index of callers and callees of a method by its index
-    public ArrayList<Index> getMethodIndexByIndex(ArrayList<Index> methodIndex, String type){
-        ClassNode tempclass;
-        ArrayList<Index> myIndex=new ArrayList<>();
-        if(!methodIndex.isEmpty()){
-            for(Index myindex : methodIndex){
-                tempclass=this.classes.get(myindex.getClassIndex());
-                if(type.equals("callee")){
-                    myIndex.addAll(tempclass.getMethodByIndex(myindex.getMethodIndex()).getCallees());
-                }
-                else{
-                    myIndex.addAll(tempclass.getMethodByIndex(myindex.getMethodIndex()).getCallers());
-                }
+    public void DFSGetCallee(Index methodIndex, int depth){
+        MethodInfo m = getMethodByIndex(methodIndex);
+        ArrayList<Index> tempCallee = m.getCallees();
+        if(depth < this.myDepth && !tempCallee.isEmpty()){
+            //recursion
+            for(Index i : tempCallee){
+                myResult.addCallee(getMethodByIndex(methodIndex),depth);
+                DFSGetCallee(i,depth+1);
             }
         }
-        return myIndex;
+        else{
+            myResult.addCallee(getMethodByIndex(methodIndex),depth);
+        }
+    }
+    public void DFSGetCaller(Index methodIndex, int depth){
+        MethodInfo m = getMethodByIndex(methodIndex);
+        ArrayList<Index> tempCaller = m.getCallers();
+        if(depth < this.myDepth && !tempCaller.isEmpty()){
+            //recursion
+            for(Index i : tempCaller){
+                myResult.addCaller(getMethodByIndex(methodIndex),depth);
+                DFSGetCaller(i,depth+1);
+            }
+        }
+        else{
+            myResult.addCaller(getMethodByIndex(methodIndex),depth);
+        }
     }
 }
