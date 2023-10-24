@@ -40,7 +40,7 @@ public class ParameterAnalyzer implements ParameterInterface {
     public void printAnalysis(){
         System.out.println("\nParameterAnalyzer finished analyzing...");
         for(MethodNode method : methodNodeList){
-            method.printMethodCalled();
+            //method.printMethodCalled();
         }
     }
 

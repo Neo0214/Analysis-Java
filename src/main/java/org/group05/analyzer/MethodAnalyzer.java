@@ -1,6 +1,8 @@
 package org.group05.analyzer;
 
+
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -8,103 +10,163 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import org.group05.analyzer.dataStructure.MethodNode;
-import org.group05.service.MethodInterface;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.sun.source.tree.Scope;
+import javassist.compiler.ast.Pair;
+import org.group05.analyzer.dataStructure.ClassNode;
+import org.group05.analyzer.dataStructure.Index;
+import org.group05.analyzer.dataStructure.MethodInfo;
+
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MethodAnalyzer implements MethodInterface {
+public class MethodAnalyzer {
+    private ArrayList<ClassNode> classes;
 
-    private ArrayList<MethodNode> methodNodeList;
-
-    //constructor
     public MethodAnalyzer(ArrayList<CompilationUnit> cus) {
-        methodNodeList = new ArrayList<>();
-        for(CompilationUnit cu : cus){
-            new MethodCallVisitor().visit(cu,methodNodeList);
+        this.classes = new ArrayList<>();
+        readCus(cus);
+    }
+
+    private void readCus(ArrayList<CompilationUnit> cus) {
+        // first, we get class names and set class nodes
+
+        for (CompilationUnit cu : cus) {
+            ClassVisitor classVisitor = new ClassVisitor();
+            classVisitor.visit(cu, classes);
         }
-        printAnalysis();
+
+        // then, we get method names and set method nodes
+        for (CompilationUnit cu : cus) {
+            MethodVisitor methodVisitor = new MethodVisitor();
+            methodVisitor.visit(cu, classes);
+        }
+
+        // at last, we check callee and caller and set index
+        for (CompilationUnit cu : cus) {
+            MethodCallVisitor methodCallVisitor = new MethodCallVisitor();
+            methodCallVisitor.visit(cu, classes);
+        }
 
     }
 
-    public ArrayList<MethodCallExpr> getCalls(String query) {
-        return null;
-    }
-
-    public ArrayList<MethodCallExpr> getCalledBy(MethodCallExpr query) {
-        return null;
-    }
-
-    public void printAnalysis(){
-        System.out.println("\nMethodAnalyzer finished analyzing...");
-        for(MethodNode method : methodNodeList){
-            method.printMethodCalled();
+    public void printClass(ClassNode classNode) {
+        System.out.println(classNode.getName());
+        ArrayList<MethodInfo> mds = classNode.getMethods();
+        for (MethodInfo md : mds) {
+            System.out.println(md.getName());
+            ArrayList<String> parameters = md.getParameters();
+            for (String parameter : parameters) {
+                System.out.println(parameter);
+            }
         }
     }
 
-    //内部类，重写访问者适配器，完成对调用方法表达式的遍历
-    private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<MethodNode>> {
+    private static class ClassVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
         @Override
-        public void visit(MethodCallExpr methodCallExpr, ArrayList<MethodNode> methodNodeList) {
-            // 获取被调用方法的类名和方法名
-
-            //获取被调用方法的类名
-            String calledClass = methodCallExpr.getScope().map(scope -> scope.toString()).orElse("");
-            //获取被调用方法名
-            String calledMethod = methodCallExpr.getNameAsString();
-
-            //获取主动调用方法的类名和方法名
-
-            //获取主动调用方法名
-            MethodDeclaration callingMethod = methodCallExpr.findAncestor(MethodDeclaration.class).orElse(null);
-            String callingMethodName = callingMethod != null ? callingMethod.getNameAsString() : "";
-            //获取主动调用类名
-            Optional<ClassOrInterfaceDeclaration> classDeclaration = methodCallExpr.findAncestor(ClassOrInterfaceDeclaration.class);
-            String callingMethodclass = classDeclaration.map(c -> c.getNameAsString()).orElse("");
-
-            //获取调用语句的参数
-            List<Expression> arguments = methodCallExpr.getArguments();
-            ArrayList<String> callArgs = new ArrayList<>();
-            for (Expression argument : arguments) {
-                callArgs.add(argument.toString());
+        public void visit(ClassOrInterfaceDeclaration cid, ArrayList<ClassNode> classes) {
+            if (!cid.isInterface() && cid.getParentNode().get() instanceof CompilationUnit) {  // only get class, not interface
+                // now we got public class the same as file name
+                String className = cid.getNameAsString();
+                ClassNode cn = new ClassNode(className, className + ".java");
+                classes.add(cn);
             }
+            super.visit(cid, classes);
+        }
+    }
 
-            //获取被调用方法的形参
-            /*
-            MethodDeclaration calledMethodDeclaration = (MethodDeclaration) methodCallExpr.resolve();
-            calledMethodDeclaration.getParameters();
-            NodeList<Parameter> parameters = calledMethodDeclaration.getParameters();
-            ArrayList<String> calledMethodParams = new ArrayList<>();
-            for (Parameter parameter : parameters) {
-                calledMethodParams.add(parameter.getNameAsString() + " : " + parameter.getTypeAsString());
-            }
-            */
+    private static class MethodVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
+        @Override
+        public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
 
-
-
-            //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
-            MethodNode callingMethodNode = new MethodNode(callingMethodName, callingMethodclass);
-            MethodNode calledMethodNode = new MethodNode(calledMethod, calledClass);
-            callingMethodNode.addCalledMethod(calledMethodNode, callArgs);
-            boolean callingSameFlag = false;
-
-            //merges two MethodNodes with the same MethodName and ClassName
-            for (MethodNode method : methodNodeList) {
-                if (method.euqalsto(callingMethodNode)) {
-                    method.mergeCall(callingMethodNode);
-                    callingSameFlag = true;
+            // get name of class
+            Optional<ClassOrInterfaceDeclaration> parent = md.findAncestor(ClassOrInterfaceDeclaration.class);
+            if (parent.isPresent()) {
+                ClassOrInterfaceDeclaration cid = parent.get();
+                String className = cid.getNameAsString();
+                // get name of method
+                String methodName = md.getNameAsString();
+                // get parameters of method
+                NodeList<Parameter> parameters = md.getParameters();
+                ArrayList<String> parameterList = new ArrayList<>();
+                for (Parameter parameter : parameters) {
+                    parameterList.add(parameter.getTypeAsString());
+                }
+                MethodInfo mi = new MethodInfo(methodName, parameterList);
+                for (ClassNode cn : classes) {
+                    if (cn.getName().equals(className)) {
+                        cn.addMethod(mi);
+                    }
                 }
             }
-            //if this node has never been added before,then it should be added this time
-            if (callingSameFlag == false)
-                methodNodeList.add(callingMethodNode);
 
-            // 更新方法调用图
-            super.visit(methodCallExpr, methodNodeList);
+
+            super.visit(md, classes);
         }
     }
 
+    private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
+        @Override
+        public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
+            //super.visit(md, classes);
+            // get md's class name
+            Optional<ClassOrInterfaceDeclaration> parent = md.findAncestor(ClassOrInterfaceDeclaration.class);
+            int mdClassIndex = -1;
+            int mdMethodIndex = -1;
+            if (parent.isPresent()){
+                ClassOrInterfaceDeclaration cid = parent.get();
+                String className = cid.getNameAsString();
+                List<Parameter> arguments = md.getParameters();
+                ArrayList<String> parameterList = new ArrayList<>();
+                for (Parameter parameter : arguments) {
+                    parameterList.add(parameter.getTypeAsString());
+                }
+                mdClassIndex = Tools.getClassIndex(classes, className);
+                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(),parameterList),classes.get(mdClassIndex));
+            }
+            // get md's method call
+            List<MethodCallExpr> methodCallExprs = md.findAll(MethodCallExpr.class);
+            for (MethodCallExpr methodCallExpr : methodCallExprs) {
+                // get callee name and parameters and class name
+                // 获取被调用方法的类名,而不是实例名
+                String calledClass = methodCallExpr.getScope().orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
+                String calledMethod = methodCallExpr.getNameAsString();
+                List<Expression> arguments = methodCallExpr.getArguments();
+                ArrayList<String> callArgs = new ArrayList<>();
+                for (Expression argument : arguments) {
+                    callArgs.add(argument.calculateResolvedType().describe());
+                    System.out.println(argument.calculateResolvedType().describe());
+                }
+                // get callee class's index
+                int classIndex = Tools.getClassIndex(classes, calledClass);
+                int methodIndex=Tools.getMethodIndex(new MethodInfo(calledMethod,callArgs),classes.get(classIndex));
+                Index calleeIndex = new Index(classIndex, methodIndex);  // set callee index
+                classes.get(mdClassIndex).getMethods().get(mdMethodIndex).addCallee(calleeIndex);  // set caller index
+                classes.get(classIndex).getMethods().get(methodIndex).addCaller(new Index(mdClassIndex, mdMethodIndex));
+            }
+        }
+    }
 
+    private static class Tools{
+        public static int getClassIndex(ArrayList<ClassNode> classes, String className){
+            for (int i = 0; i < classes.size(); i++) {
+                if (classes.get(i).getName().equals(className)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        public static int getMethodIndex(MethodInfo mi, ClassNode cv){
+            ArrayList<MethodInfo> methods = cv.getMethods();
+            for (int i = 0; i < methods.size(); i++) {
+                if (methods.get(i).isSame(mi)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
 }
