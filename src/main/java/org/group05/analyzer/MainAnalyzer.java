@@ -39,7 +39,8 @@ public class MainAnalyzer {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
             this.project = file;
-            compilationUnits = ASTGenerator.generateAST(fileList);
+
+            compilationUnits = ASTGenerator.generateAST(fileList,filePath);
             this.methodAnalyzer = new MethodAnalyzer(compilationUnits);
             this.parameterAnalyzer = new ParameterAnalyzer(compilationUnits);
             return true;
