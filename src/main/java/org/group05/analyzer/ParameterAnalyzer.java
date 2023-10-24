@@ -8,39 +8,183 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import org.checkerframework.checker.units.qual.C;
+import org.group05.analyzer.dataStructure.CallRecord;
 import org.group05.analyzer.dataStructure.MethodNode;
 import org.group05.service.ParameterInterface;
 
+import javax.tools.Tool;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
 public class ParameterAnalyzer implements ParameterInterface {
 
     private ArrayList<MethodNode> methodNodeList;
+    private HashMap<MethodNode, ArrayList<CallRecord>> incomingParamEdges;
 
-
+    public ArrayList<MethodCallExpr> getCalls(MethodCallExpr query){
+        return null;
+    }; // name of methods which is called in the code
+    public ArrayList<MethodCallExpr> getCalledBy(MethodCallExpr query){
+        return null;
+    }; // name of methods which call the query method
     //constructor
     public ParameterAnalyzer(ArrayList<CompilationUnit> cus) {
         methodNodeList = new ArrayList<>();
-        for(CompilationUnit cu : cus){
-            new MethodCallVisitor().visit(cu,methodNodeList);
+        incomingParamEdges = new HashMap<>();
+        for (CompilationUnit cu : cus) {
+            new MethodCallVisitor().visit(cu, methodNodeList);
         }
+        Tools.nodeChecker(methodNodeList);
+        Tools.transMarker(methodNodeList);
+        AllIncomingEdges();
         printAnalysis();
     }
-    public ArrayList<MethodCallExpr> getCalls(MethodCallExpr query) {
-        return null;
-    }
 
-    public ArrayList<MethodCallExpr> getCalledBy(MethodCallExpr query) {
-        return null;
-    }
-
-
-    public void printAnalysis(){
+    public void printAnalysis() {
         System.out.println("\nParameterAnalyzer finished analyzing...");
-        for(MethodNode method : methodNodeList){
-            //method.printMethodCalled();
+        for (MethodNode method : methodNodeList) {
+            method.printMethodCalled();
+        }
+        System.out.println("query every MethodNode (for test)");
+        for (MethodNode method : methodNodeList) {
+            queryParam(method.getClassName(), method.getMethodName());
+        }
+    }
+
+    public void queryParam(String ClassName, String MethodName) {
+        MethodNode m = null;    //要查询的方法
+        boolean findFlag = false;
+        ArrayList<CallRecord> result = new ArrayList<>();
+        //遍历列表找到待查询的方法
+        for (MethodNode method : methodNodeList) {
+            if (method.getClassName().equals(ClassName) && method.getMethodName().equals(MethodName)) {
+                m = method;
+                findFlag = true;
+                System.out.println("successfully find this method,querying...");
+            }
+        }
+        if (!findFlag) {
+            System.out.println("fail to find this method,please check your command");
+        }
+        //遍历所有的method节点，找到所有 有出边指向m 的，把这些出边提取到result里
+        for (MethodNode method : methodNodeList) {
+            ArrayList<CallRecord> callRecords = method.getMethodCalled();
+            for (CallRecord call : callRecords) {
+                if (call.getCalleeMethod().equals(m)) {
+                    result.add(call);
+                }
+            }
+        }
+        //按照规定好的输出方式，逐个输出这些出边（发出者及其权重）
+        System.out.println(m.getClassName() + ':');
+        ArrayList<String> CallerArgs = m.getCallerArgs();
+        //打印正在查询的方法名及其形参
+        for (int i = 0; i < 4; i++) {
+            System.out.print(' ');
+        }
+        System.out.print(m.getMethodName() + '(');
+        for (int i = 0; i < CallerArgs.size(); i++) {
+            System.out.print(CallerArgs.get(i));
+            if (i < CallerArgs.size() - 1) {
+                System.out.print(", ");
+            }
+        }
+        System.out.print("):\n");
+        //打印数个形参分别的可能来源
+        for (int i = 0; i < CallerArgs.size(); i++) {
+            //缩进8格
+            for (int j = 0; j < 8; j++) {
+                System.out.print(' ');
+            }
+            System.out.println(CallerArgs.get(i) + ':');
+
+            //打印result中已获取的所有可能来源
+            for (CallRecord call : result) {
+                String CallerMethod = call.getCallerMethod().getClassName()+'.'+call.getCallerMethod().getMethodName();
+                ArrayList<String> args = call.getArguments();
+                for (int j = 0; j < 12; j++) {
+                    System.out.print(' ');
+                }
+                System.out.print('[');
+                Tools.printArgSource(args.get(i), CallerMethod);
+                if(call.isTransParam()){
+                    dfsFindSource(i,call.getCallerMethod());
+                }
+                System.out.print("]\n");
+            }
+            System.out.println();
+        }
+
+    }
+    // 初始化每个节点的所有入边并存储在incomingParamEdges中
+    public void AllIncomingEdges() {
+
+        for (MethodNode methodNode : methodNodeList) {
+            ArrayList<CallRecord> incomingEdgeList = new ArrayList<>();
+
+            // 遍历 methodNodeList，找出所有指向 methodNode 的入边
+            for (MethodNode caller : methodNodeList) {
+                if (caller != methodNode) {
+                    ArrayList<CallRecord> callRecords = caller.getMethodCalled();
+                    for (CallRecord callRecord : callRecords) {
+                        System.out.println(callRecord.getCallerMethod().getClassName() + "." + callRecord.getCallerMethod().getMethodName() + " --> " + callRecord.getCalleeMethod().getClassName() + "." + callRecord.getCalleeMethod().getMethodName() + "[" +callRecord.isTransParam());
+                        if (callRecord.getCalleeMethod().equals(methodNode)) {
+                            incomingEdgeList.add(callRecord);
+                        }
+                    }
+                }
+            }
+            // 将 methodNode 及其对应的入边列表存储在 HashMap 中
+            incomingParamEdges.put(methodNode, incomingEdgeList);
+        }
+
+    }
+
+    // 获取特定节点的所有入边并返回
+    public ArrayList<CallRecord> getIncomingEdges(String methodName) {
+
+        for (MethodNode methodNode : methodNodeList) {
+            if (methodNode.getMethodName().equals(methodName)) {
+                ArrayList<CallRecord> incomingEdges = incomingParamEdges.get(methodNode);
+                return incomingEdges;
+            }
+        }
+        return null;
+    }
+
+    public void testIncomingEdgesFunctions() {
+
+        for (MethodNode methodNode : methodNodeList) {
+            String methodName = methodNode.getMethodName();
+            System.out.println("Method: " + methodNode.getClassName() + "." + methodName);
+    
+            ArrayList<CallRecord> incomingEdges = getIncomingEdges(methodName);
+            if (incomingEdges != null) {
+                System.out.println("Incoming Edges:");
+                for (CallRecord callRecord : incomingEdges) {
+                    System.out.println(methodNode.getClassName() + "." + methodName + " <-- " + callRecord.getCallerMethod().getClassName() + "." + callRecord.getCallerMethod().getMethodName());
+                }
+            } else {
+                System.out.println("No incoming edges.");
+            }
+    
+            System.out.println();
+        }
+    }
+
+    public void dfsFindSource(int order,MethodNode method){
+        System.out.print(" <-- ");
+        String arg = method.getCallerArgs().get(order);
+        String methodName = method.getClassName()+':'+method.getMethodName();
+        Tools.printArgSource(arg,methodName);
+        ArrayList<CallRecord> inEdges = getIncomingEdges(method.getMethodName());
+        for(CallRecord call : inEdges){
+            if(call.isTransParam()){
+                dfsFindSource(order,call.getCallerMethod());
+            }
         }
     }
 
@@ -50,8 +194,8 @@ public class ParameterAnalyzer implements ParameterInterface {
         public void visit(MethodCallExpr methodCallExpr, ArrayList<MethodNode> methodNodeList) {
             // 获取被调用方法的类名和方法名
 
-            //获取被调用方法的类名
-            String calledClass = methodCallExpr.getScope().map(scope -> scope.toString()).orElse("");
+            //获取被调用方法的类名(不强制获取)
+            String calledClass = null;
             //获取被调用方法名
             String calledMethod = methodCallExpr.getNameAsString();
 
@@ -72,24 +216,35 @@ public class ParameterAnalyzer implements ParameterInterface {
             }
 
             //获取被调用方法的形参
-            /*
-            MethodDeclaration calledMethodDeclaration = (MethodDeclaration) methodCallExpr.resolve();
-            calledMethodDeclaration.getParameters();
-            NodeList<Parameter> parameters = calledMethodDeclaration.getParameters();
-            ArrayList<String> calledMethodParams = new ArrayList<>();
-            for (Parameter parameter : parameters) {
-                calledMethodParams.add(parameter.getNameAsString() + " : " + parameter.getTypeAsString());
+
+            // 获取调用语句的发起调用者方法的形参列表
+            ArrayList<String> callerMethodParams = new ArrayList<>();
+            if (callingMethod != null) {
+                NodeList<Parameter> parameters = callingMethod.getParameters();
+                for (Parameter parameter : parameters) {
+                    callerMethodParams.add(parameter.getTypeAsString() + ' ' + parameter.getNameAsString());
+                }
             }
-            */
 
-
-
+            boolean callingSameFlag = false;  //记录有无重复的主动调用Method
+            boolean calledSameFlag = false;   //记录有无重复的被调用Method
             //创建两个新的methodNode对象并把被调用者加入调用者的CallRecord
+            //创建新的主动调用method节点
             MethodNode callingMethodNode = new MethodNode(callingMethodName, callingMethodclass);
-            MethodNode calledMethodNode = new MethodNode(calledMethod, calledClass);
-            callingMethodNode.addCalledMethod(calledMethodNode, callArgs);
-            boolean callingSameFlag = false;
+            MethodNode calledMethodNode = null;
+            //根据method节点列表中已有节点的情况来确定是否新建被调用method节点
+            for (MethodNode method : methodNodeList) {
+                if (method.getMethodName().equals(calledMethod)) {
+                    calledSameFlag = true;
+                    calledMethodNode = method;
+                }
+            }
+            if (calledSameFlag == false) {
+                calledMethodNode = new MethodNode(calledMethod, calledClass);
+            }
 
+            callingMethodNode.addCalledMethod(calledMethodNode, callingMethodNode, callArgs);
+            callingMethodNode.setCallerArgs(callerMethodParams);
             //merges two MethodNodes with the same MethodName and ClassName
             for (MethodNode method : methodNodeList) {
                 if (method.euqalsto(callingMethodNode)) {
@@ -101,14 +256,82 @@ public class ParameterAnalyzer implements ParameterInterface {
             if (callingSameFlag == false)
                 methodNodeList.add(callingMethodNode);
 
+
             // 更新方法调用图
             super.visit(methodCallExpr, methodNodeList);
         }
     }
 
 
+    private static class Tools {
 
+        //重新排查一遍已提取信息的列表，将节点边指针指向真正要指向的节点
+        //并将系统库中的类的方法调用删掉
+        private static void nodeChecker(ArrayList<MethodNode> methodList) {
+            for (MethodNode method : methodList) {
+                ArrayList<CallRecord> callRecords = method.getMethodCalled();
+                for (int i = 0; i < callRecords.size(); i++) {
+                    CallRecord call = callRecords.get(i);
+                    MethodNode md = call.getCalleeMethod();
+                    if (md.getClassName() == null) {
+                        boolean sameFlag = false;
 
+                        
+
+                        for (MethodNode m : methodList) {
+                            //System.out.println("比较"+md.getMethodName()+"与"+m.getMethodName());
+                            if (md.getMethodName().equals(m.getMethodName())) {
+                                sameFlag = true;
+                                //System.out.println("发现一致，改变边的终点");
+                                call.changeCalleeMethod(m);
+                            }
+                        }
+                        if (sameFlag == false) {
+                            //System.out.println("列表方法无此项，删掉此边");
+                            method.removeCalledMethod(callRecords.get(i));
+                            i--;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        //遍历所有的callRecord，将其中涉及到间接调用的做特殊标记（更改其参数）
+        //trans--间接调用   Marker--标记者
+        private static void transMarker(ArrayList<MethodNode> methodList) {
+            for (MethodNode method : methodList) {
+                ArrayList<String> formalArgs = method.getCallerArgs();
+                for (String arg : formalArgs) {
+                    //原先的arg是 String name1 ,处理之后变成 name1 (把类型去掉，不考虑类型)
+                    arg = arg.split(" ")[1];
+                }
+                ArrayList<CallRecord> callRecords = method.getMethodCalled();
+                for (CallRecord call : callRecords) {
+                    //如果某一条出边的参数列表和本节点的形参列表相同，就将该出边的trans状态置为true（表示其涉及间接调用）
+                    for (String arg : call.getArguments()) {
+                        for (String formalArg : formalArgs) {
+                            if (arg.equals(formalArg))
+                                call.setTrans(true);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void printArgSource(String arg, String method) {
+            System.out.print(arg + " : " + method);
+        }
+
+        //判断一个入边集合是否包含传递边
+        public static boolean containsTrans(ArrayList<CallRecord> calls){
+            for(CallRecord call : calls){
+                if(call.isTransParam())
+                    return true;
+            }
+            return false;
+        }
+    }
 
 
 }

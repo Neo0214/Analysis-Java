@@ -68,8 +68,6 @@ public class ASTGenerator {
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
         StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
 
-
-
         for (String file : files) {
             CompilationUnit cu=parseJavaFile(new File(file));
             cus.add(cu);
