@@ -2,7 +2,6 @@ package org.group05.analyzer;
 
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -10,17 +9,12 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
-import com.sun.source.tree.Scope;
-import javassist.compiler.ast.Pair;
 import org.group05.analyzer.dataStructure.ClassNode;
 import org.group05.analyzer.dataStructure.Index;
 import org.group05.analyzer.dataStructure.MethodInfo;
-
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class MethodAnalyzer {
@@ -50,19 +44,39 @@ public class MethodAnalyzer {
             MethodCallVisitor methodCallVisitor = new MethodCallVisitor();
             methodCallVisitor.visit(cu, classes);
         }
-
+        printClass(classes.get(0));
+        System.out.println();
+        printClass(classes.get(1));
+        System.out.println();
+        printClass(classes.get(2));
     }
 
     public void printClass(ClassNode classNode) {
-        System.out.println(classNode.getName());
+        System.out.println("class name: "+classNode.getName());
         ArrayList<MethodInfo> mds = classNode.getMethods();
         for (MethodInfo md : mds) {
-            System.out.println(md.getName());
+            System.out.println("method name: "+md.getName());
             ArrayList<String> parameters = md.getParameters();
+            System.out.print("parameters: ");
             for (String parameter : parameters) {
-                System.out.println(parameter);
+                System.out.print(parameter+" ");
             }
+            System.out.println();
+            ArrayList<Index> callees = md.getCallees();
+            System.out.print("callees: ");
+            for (Index callee : callees) {
+                System.out.println(callee.getClassIndex() + " " + callee.getMethodIndex());
+            }
+            System.out.println();
+            ArrayList<Index> callers = md.getCallers();
+            System.out.print("callers: ");
+            for (Index caller : callers) {
+                System.out.println(caller.getClassIndex() + " " + caller.getMethodIndex());
+            }
+            System.out.println();
         }
+
+
     }
 
     private static class ClassVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
@@ -124,26 +138,41 @@ public class MethodAnalyzer {
                 for (Parameter parameter : arguments) {
                     parameterList.add(parameter.getTypeAsString());
                 }
+
                 mdClassIndex = Tools.getClassIndex(classes, className);
+                if (mdClassIndex == -1) {
+                    return;
+                }
                 mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(),parameterList),classes.get(mdClassIndex));
             }
             // get md's method call
             List<MethodCallExpr> methodCallExprs = md.findAll(MethodCallExpr.class);
             for (MethodCallExpr methodCallExpr : methodCallExprs) {
+                // forbid system library call
                 // get callee name and parameters and class name
                 // 获取被调用方法的类名,而不是实例名
-                String calledClass = methodCallExpr.getScope().orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
+                Optional<Expression> scope = methodCallExpr.getScope();
+                if (scope.isEmpty()) {
+                    continue;
+                }
+                String calledClass = scope.orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
                 String calledMethod = methodCallExpr.getNameAsString();
                 List<Expression> arguments = methodCallExpr.getArguments();
                 ArrayList<String> callArgs = new ArrayList<>();
                 for (Expression argument : arguments) {
-                    callArgs.add(argument.calculateResolvedType().describe());
-                    System.out.println(argument.calculateResolvedType().describe());
+                    callArgs.add(argument.calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName());
+                    //System.out.println(argument.calculateResolvedType().describe());
                 }
                 // get callee class's index
                 int classIndex = Tools.getClassIndex(classes, calledClass);
+                if (classIndex == -1) {
+                    continue;
+                }
                 int methodIndex=Tools.getMethodIndex(new MethodInfo(calledMethod,callArgs),classes.get(classIndex));
                 Index calleeIndex = new Index(classIndex, methodIndex);  // set callee index
+                if (mdClassIndex == -1 || mdMethodIndex == -1 || classIndex == -1 || methodIndex == -1) {
+                    continue;
+                }
                 classes.get(mdClassIndex).getMethods().get(mdMethodIndex).addCallee(calleeIndex);  // set caller index
                 classes.get(classIndex).getMethods().get(methodIndex).addCaller(new Index(mdClassIndex, mdMethodIndex));
             }

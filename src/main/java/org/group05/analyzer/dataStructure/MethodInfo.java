@@ -35,4 +35,12 @@ public class MethodInfo {
     public void addCaller(Index index){
         caller.add(index);
     }
+
+    public ArrayList<Index> getCallees(){
+        return callee;
+    }
+
+    public ArrayList<Index> getCallers(){
+        return caller;
+    }
 }
