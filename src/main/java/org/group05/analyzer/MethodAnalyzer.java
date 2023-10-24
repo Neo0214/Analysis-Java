@@ -232,27 +232,36 @@ public class MethodAnalyzer {
         int tempDepth=1;
         TransmissionClass myResult=new TransmissionClass("method");
 
+
         //First, find method according to the given command
         for (ClassNode myclass : this.classes) {
-            if(myclass.getClassName().equals(className)){
+            if(myclass.getName().equals(className)){
                 //find method
                 tempMethod = myclass.getMethodByName(methodName,paramList);
                 if(tempMethod!=null){
                     flag=true;
                     myMethod.add(tempMethod);
+                    myResult.setMethodName(tempMethod.getName());
                 }
             }
         }
         if(flag){
             tempCallee = tempMethod.getCallees();
-            if(tempCallee.size() != 0){
+            if(!tempCallee.isEmpty()){
+                getMethodNameByIndex(tempCallee);
                 myCallee.addAll(tempCallee);
             }
             tempCaller = tempMethod.getCallers();
-            if(tempCaller.size() != 0){
+            if(!tempCaller.isEmpty()){
+                getMethodNameByIndex(tempCaller);
                 myCaller.addAll(tempCaller);
             }
         }
+
+        //package into result
+        myResult.setCallee(getMethodNameByIndex(myCallee),depth);
+        myResult.setCaller(getMethodNameByIndex(myCaller),depth);
+        myResult.print();
     }
 
     public ArrayList<String> getMethodNameByIndex(ArrayList<Index> methodIndex){
@@ -265,11 +274,5 @@ public class MethodAnalyzer {
             nameList.add(tempMethod.getName());
         }
         return nameList;
-    }
-
-    public void setTransmissionClass(ArrayList<Index> methodIndex){
-        if(methodIndex.size()!=0){
-
-        }
     }
 }

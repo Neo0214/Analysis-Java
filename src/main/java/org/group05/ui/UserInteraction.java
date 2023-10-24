@@ -100,7 +100,8 @@ public class UserInteraction {
      */
     private boolean isMethodQuery(String command){
         String[] commandList=command.split(" ");
-        return commandList.length == 4 && commandList[0].equals("method");
+        //return commandList.length == 4 && commandList[0].equals("method");
+        return commandList[0].equals("method");
     }
     /**
      * isParameterQuery

@@ -33,5 +33,15 @@ public class ClassNode {
         return fileName;
     }
 
-
+    public MethodInfo getMethodByName(String methodName, ArrayList<String> paramList){
+        for(MethodInfo mymethod :this.methods){
+            if(methodName.equals(mymethod.getName()) && paramList.equals(mymethod.getParameters())){
+                return mymethod;
+            }
+        }
+        return null;
+    }
+    public MethodInfo getMethodByIndex(int methodIndex){
+        return this.methods.get(methodIndex);
+    }
 }
