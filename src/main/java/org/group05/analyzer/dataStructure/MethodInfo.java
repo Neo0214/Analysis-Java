@@ -25,14 +25,32 @@ public class MethodInfo {
     }
 
     public boolean isSame(MethodInfo methodInfo){
-        return this.name.equals(methodInfo.getName()) && this.parameters.equals(methodInfo.getParameters());
+        return this.name.equals(methodInfo.getName()) && checkParameters(this.parameters,methodInfo.getParameters());
     }
-
+    private boolean checkParameters(ArrayList<String> parameters1, ArrayList<String> parameters2){
+        if(parameters1.size()!=parameters2.size()){
+            return false;
+        }
+        for(int i=0;i<parameters1.size();i++){
+            if(!parameters1.get(i).equals(parameters2.get(i))){
+                //return false;
+            }
+        }
+        return true;
+    }
     public void addCallee(Index index){
         callee.add(index);
     }
 
     public void addCaller(Index index){
         caller.add(index);
+    }
+
+    public ArrayList<Index> getCallees(){
+        return callee;
+    }
+
+    public ArrayList<Index> getCallers(){
+        return caller;
     }
 }

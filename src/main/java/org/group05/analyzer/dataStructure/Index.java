@@ -8,4 +8,12 @@ public class Index {
         this.classIndex = classIndex;
         this.methodIndex = methodIndex;
     }
+
+    public int getClassIndex(){
+        return this.classIndex;
+    }
+
+    public int getMethodIndex(){
+        return this.methodIndex;
+    }
 }
