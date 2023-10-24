@@ -12,6 +12,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.group05.analyzer.dataStructure.ClassNode;
 import org.group05.analyzer.dataStructure.Index;
 import org.group05.analyzer.dataStructure.MethodInfo;
+import org.group05.analyzer.dataStructure.TransmissionClass;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -218,6 +219,57 @@ public class MethodAnalyzer {
                 }
             }
             return -1;
+        }
+    }
+    public void analyze(String methodName, String className, int depth,ArrayList<String> paramList){
+        boolean flag=false;
+        ArrayList<MethodInfo> myMethod=new ArrayList<MethodInfo>();
+        ArrayList<Index> myCallee=new ArrayList<Index>();
+        ArrayList<Index> myCaller=new ArrayList<Index>();
+        MethodInfo tempMethod=null;
+        ArrayList<Index> tempCallee;
+        ArrayList<Index> tempCaller;
+        int tempDepth=1;
+        TransmissionClass myResult=new TransmissionClass("method");
+
+        //First, find method according to the given command
+        for (ClassNode myclass : this.classes) {
+            if(myclass.getClassName().equals(className)){
+                //find method
+                tempMethod = myclass.getMethodByName(methodName,paramList);
+                if(tempMethod!=null){
+                    flag=true;
+                    myMethod.add(tempMethod);
+                }
+            }
+        }
+        if(flag){
+            tempCallee = tempMethod.getCallees();
+            if(tempCallee.size() != 0){
+                myCallee.addAll(tempCallee);
+            }
+            tempCaller = tempMethod.getCallers();
+            if(tempCaller.size() != 0){
+                myCaller.addAll(tempCaller);
+            }
+        }
+    }
+
+    public ArrayList<String> getMethodNameByIndex(ArrayList<Index> methodIndex){
+        ClassNode tempclass;
+        MethodInfo tempMethod;
+        ArrayList<String> nameList=new ArrayList<>();
+        for(Index myindex : methodIndex){
+            tempclass=this.classes.get(myindex.getClassIndex());
+            tempMethod=tempclass.getMethodByIndex(myindex.getMethodIndex());
+            nameList.add(tempMethod.getName());
+        }
+        return nameList;
+    }
+
+    public void setTransmissionClass(ArrayList<Index> methodIndex){
+        if(methodIndex.size()!=0){
+
         }
     }
 }

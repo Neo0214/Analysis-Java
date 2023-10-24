@@ -82,6 +82,7 @@ public class UserInteraction {
         }
         else if (isMethodQuery(command)){
             // do function query
+            mainAnalyzer.methodQuery(command);
         }
         else if (isParameterQuery(command)){
             // do parameter query
