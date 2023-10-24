@@ -44,11 +44,10 @@ public class MethodAnalyzer {
             MethodCallVisitor methodCallVisitor = new MethodCallVisitor();
             methodCallVisitor.visit(cu, classes);
         }
-        printClass(classes.get(0));
-        System.out.println();
-        printClass(classes.get(1));
-        System.out.println();
-        printClass(classes.get(2));
+        for (ClassNode classNode : classes) {
+            printClass(classNode);
+            System.out.println();
+        }
     }
 
     public void printClass(ClassNode classNode) {
@@ -155,13 +154,25 @@ public class MethodAnalyzer {
                 if (scope.isEmpty()) {
                     continue;
                 }
-                String calledClass = scope.orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
+                String calledClass;
+                try {
+                    calledClass = scope.orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
+                }catch (Exception ex){
+                    continue;
+                }
                 String calledMethod = methodCallExpr.getNameAsString();
+                if (calledMethod.equals("generateAST")){
+                    System.out.println("execInstruction");
+                }
+
                 List<Expression> arguments = methodCallExpr.getArguments();
                 ArrayList<String> callArgs = new ArrayList<>();
                 for (Expression argument : arguments) {
-                    callArgs.add(argument.calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName());
-                    //System.out.println(argument.calculateResolvedType().describe());
+                    try {
+                        callArgs.add(argument.calculateResolvedType().asTypeParameter().getName());
+                    }catch(Exception ex){
+                        callArgs.add(argument.toString());
+                    }
                 }
                 // get callee class's index
                 int classIndex = Tools.getClassIndex(classes, calledClass);
