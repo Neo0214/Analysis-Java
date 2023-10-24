@@ -1,6 +1,7 @@
 package org.group05.analyzer.dataStructure;
 
 import java.util.ArrayList;
+import org.group05.analyzer.dataStructure.MethodInfo;
 import org.group05.analyzer.dataStructure.Index;
 
 public class TransmissionClass {
@@ -24,20 +25,20 @@ public class TransmissionClass {
     public void setMethodName(String name){
         this.methodName=name;
     }
-    public void setCallee(ArrayList<String> nameList, int depth){
+    public void addCallee(ArrayList<String> nameList, int depth){
         if(!nameList.isEmpty()){
             this.calleeName.addAll(nameList);
-        }
-        for(String i : nameList){
-            this.calleeDepth.add(depth);
+            for(String i : nameList){
+                this.calleeDepth.add(depth);
+            }
         }
     }
-    public void setCaller(ArrayList<String> nameList, int depth){
+    public void addCaller(ArrayList<String> nameList, int depth){
         if(!nameList.isEmpty()){
             this.callerName.addAll(nameList);
-        }
-        for(String i : nameList){
-            this.callerDepth.add(depth);
+            for(String i : nameList){
+                this.callerDepth.add(depth);
+            }
         }
     }
     public void print(){
@@ -50,6 +51,9 @@ public class TransmissionClass {
                 d++;
             }
         }
+        else{
+            System.out.println(" [NONE]");
+        }
         d=0;
         System.out.println("caller:");
         if(!this.callerName.isEmpty()){
@@ -57,6 +61,9 @@ public class TransmissionClass {
                 System.out.println(i + "  depth:" + callerDepth.get(d));
                 d++;
             }
+        }
+        else{
+            System.out.println(" [NONE]");
         }
     }
 }

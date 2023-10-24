@@ -227,11 +227,10 @@ public class MethodAnalyzer {
         ArrayList<Index> myCallee=new ArrayList<Index>();
         ArrayList<Index> myCaller=new ArrayList<Index>();
         MethodInfo tempMethod=null;
-        ArrayList<Index> tempCallee;
-        ArrayList<Index> tempCaller;
+        ArrayList<Index> tempCallee=new ArrayList<Index>();
+        ArrayList<Index> tempCaller=new ArrayList<Index>();
         int tempDepth=1;
         TransmissionClass myResult=new TransmissionClass("method");
-
 
         //First, find method according to the given command
         for (ClassNode myclass : this.classes) {
@@ -248,21 +247,29 @@ public class MethodAnalyzer {
         if(flag){
             tempCallee = tempMethod.getCallees();
             if(!tempCallee.isEmpty()){
-                getMethodNameByIndex(tempCallee);
-                myCallee.addAll(tempCallee);
+                myResult.addCallee(getMethodNameByIndex(tempCallee),1);
             }
             tempCaller = tempMethod.getCallers();
             if(!tempCaller.isEmpty()){
-                getMethodNameByIndex(tempCaller);
-                myCaller.addAll(tempCaller);
+                myResult.addCaller(getMethodNameByIndex(tempCaller),1);
             }
         }
 
-        //package into result
-        myResult.setCallee(getMethodNameByIndex(myCallee),depth);
-        myResult.setCaller(getMethodNameByIndex(myCaller),depth);
+        for(int d=2;d<=depth;d++){
+            if(!tempCallee.isEmpty()){
+                tempCallee=getMethodIndexByIndex(tempCallee,"callee");
+            }
+            if(!tempCaller.isEmpty()){
+                tempCaller=getMethodIndexByIndex(tempCaller,"caller");
+            }
+            myResult.addCallee(getMethodNameByIndex(tempCallee),d);
+            myResult.addCaller(getMethodNameByIndex(tempCaller),d);
+        }
+
         myResult.print();
     }
+
+
 
     public ArrayList<String> getMethodNameByIndex(ArrayList<Index> methodIndex){
         ClassNode tempclass;
@@ -274,5 +281,23 @@ public class MethodAnalyzer {
             nameList.add(tempMethod.getName());
         }
         return nameList;
+    }
+
+    //to get index of callers and callees of a method by its index
+    public ArrayList<Index> getMethodIndexByIndex(ArrayList<Index> methodIndex, String type){
+        ClassNode tempclass;
+        ArrayList<Index> myIndex=new ArrayList<>();
+        if(!methodIndex.isEmpty()){
+            for(Index myindex : methodIndex){
+                tempclass=this.classes.get(myindex.getClassIndex());
+                if(type.equals("callee")){
+                    myIndex.addAll(tempclass.getMethodByIndex(myindex.getMethodIndex()).getCallees());
+                }
+                else{
+                    myIndex.addAll(tempclass.getMethodByIndex(myindex.getMethodIndex()).getCallers());
+                }
+            }
+        }
+        return myIndex;
     }
 }
