@@ -17,6 +17,19 @@ public class ClassNode {
         methods.add(method);
     }
 
+    public void setMethods(ArrayList<MethodInfo> methods) {
+        this.methods = methods;
+    }
 
+    public String getName() {
+        return name;
+    }
 
+    public ArrayList<MethodInfo> getMethods() {
+        return methods;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
 }
