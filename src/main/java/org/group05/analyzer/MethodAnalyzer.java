@@ -12,6 +12,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.group05.analyzer.dataStructure.ClassNode;
 import org.group05.analyzer.dataStructure.Index;
 import org.group05.analyzer.dataStructure.MethodInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,14 +52,14 @@ public class MethodAnalyzer {
     }
 
     public void printClass(ClassNode classNode) {
-        System.out.println("class name: "+classNode.getName());
+        System.out.println("class name: " + classNode.getName());
         ArrayList<MethodInfo> mds = classNode.getMethods();
         for (MethodInfo md : mds) {
-            System.out.println("method name: "+md.getName());
+            System.out.println("method name: " + md.getName());
             ArrayList<String> parameters = md.getParameters();
             System.out.print("parameters: ");
             for (String parameter : parameters) {
-                System.out.print(parameter+" ");
+                System.out.print(parameter + " ");
             }
             System.out.println();
             ArrayList<Index> callees = md.getCallees();
@@ -124,12 +125,12 @@ public class MethodAnalyzer {
     private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
         @Override
         public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
-            //super.visit(md, classes);
+            super.visit(md, classes);
             // get md's class name
             Optional<ClassOrInterfaceDeclaration> parent = md.findAncestor(ClassOrInterfaceDeclaration.class);
             int mdClassIndex = -1;
             int mdMethodIndex = -1;
-            if (parent.isPresent()){
+            if (parent.isPresent()) {
                 ClassOrInterfaceDeclaration cid = parent.get();
                 String className = cid.getNameAsString();
                 List<Parameter> arguments = md.getParameters();
@@ -142,7 +143,10 @@ public class MethodAnalyzer {
                 if (mdClassIndex == -1) {
                     return;
                 }
-                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(),parameterList),classes.get(mdClassIndex));
+                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(), parameterList), classes.get(mdClassIndex));
+            }
+            if (parent.get().getNameAsString().equals("ASTGenerator")) {
+                System.out.println("generateAST");
             }
             // get md's method call
             List<MethodCallExpr> methodCallExprs = md.findAll(MethodCallExpr.class);
@@ -150,18 +154,24 @@ public class MethodAnalyzer {
                 // forbid system library call
                 // get callee name and parameters and class name
                 // 获取被调用方法的类名,而不是实例名
+                boolean flag = false;
                 Optional<Expression> scope = methodCallExpr.getScope();
                 if (scope.isEmpty()) {
-                    continue;
+                    flag = true;
                 }
                 String calledClass;
                 try {
-                    calledClass = scope.orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
-                }catch (Exception ex){
+                    if (!flag) {
+                        calledClass = scope.orElse(null).calculateResolvedType().asReferenceType().getTypeDeclaration().get().getClassName();
+                    }
+                    else{
+                        calledClass=parent.get().getNameAsString();
+                    }
+                } catch (Exception ex) {
                     continue;
                 }
                 String calledMethod = methodCallExpr.getNameAsString();
-                if (calledMethod.equals("generateAST")){
+                if (calledMethod.equals("parseJavaFile")) {
                     System.out.println("execInstruction");
                 }
 
@@ -170,7 +180,7 @@ public class MethodAnalyzer {
                 for (Expression argument : arguments) {
                     try {
                         callArgs.add(argument.calculateResolvedType().asTypeParameter().getName());
-                    }catch(Exception ex){
+                    } catch (Exception ex) {
                         callArgs.add(argument.toString());
                     }
                 }
@@ -179,7 +189,7 @@ public class MethodAnalyzer {
                 if (classIndex == -1) {
                     continue;
                 }
-                int methodIndex=Tools.getMethodIndex(new MethodInfo(calledMethod,callArgs),classes.get(classIndex));
+                int methodIndex = Tools.getMethodIndex(new MethodInfo(calledMethod, callArgs), classes.get(classIndex));
                 Index calleeIndex = new Index(classIndex, methodIndex);  // set callee index
                 if (mdClassIndex == -1 || mdMethodIndex == -1 || classIndex == -1 || methodIndex == -1) {
                     continue;
@@ -190,8 +200,8 @@ public class MethodAnalyzer {
         }
     }
 
-    private static class Tools{
-        public static int getClassIndex(ArrayList<ClassNode> classes, String className){
+    private static class Tools {
+        public static int getClassIndex(ArrayList<ClassNode> classes, String className) {
             for (int i = 0; i < classes.size(); i++) {
                 if (classes.get(i).getName().equals(className)) {
                     return i;
@@ -199,7 +209,8 @@ public class MethodAnalyzer {
             }
             return -1;
         }
-        public static int getMethodIndex(MethodInfo mi, ClassNode cv){
+
+        public static int getMethodIndex(MethodInfo mi, ClassNode cv) {
             ArrayList<MethodInfo> methods = cv.getMethods();
             for (int i = 0; i < methods.size(); i++) {
                 if (methods.get(i).isSame(mi)) {

@@ -33,7 +33,7 @@ public class MethodInfo {
         }
         for(int i=0;i<parameters1.size();i++){
             if(!parameters1.get(i).equals(parameters2.get(i))){
-                return false;
+                //return false;
             }
         }
         return true;
