@@ -19,8 +19,9 @@ public class MethodNode {
 
     public  MethodNode(String MethodName,String ClassName)
     {
-        setMethodName(MethodName);
-        setClassName(ClassName);
+        this.MethodName = MethodName;
+        this.ClassName = ClassName;
+
         CallerArgs = new ArrayList<>();
         CallRecords = new ArrayList<>();
     }
@@ -48,6 +49,7 @@ public class MethodNode {
     public String getMethodName() {
         return MethodName;
     }
+
     public ArrayList<String> getCallerArgs() {
         return CallerArgs;
     }
@@ -80,7 +82,16 @@ public class MethodNode {
         for(CallRecord call : CallRecords){
             MethodNode calledMethod = call.getCalleeMethod();
             ArrayList<String> calledArgs = call.getArguments();
-            System.out.print("  calls : "+calledMethod.getMethodName()+" with args : ");
+            //被调用的方法
+            System.out.print("  calls : "+calledMethod.getMethodName());
+            //被调用方法的所属类
+            if(calledMethod.getMethodName()!=null){
+                System.out.print("(Class:"+calledMethod.getClassName()+')');
+            }
+            else{
+
+            }
+            System.out.print(" with args : ");
             for(String arg : calledArgs)
                 System.out.print(arg+' ');
             System.out.print('\n');
