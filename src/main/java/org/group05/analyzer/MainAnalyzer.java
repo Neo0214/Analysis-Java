@@ -51,9 +51,21 @@ public class MainAnalyzer {
 
 
 
-    public void methodQuery(String methodName, String className, String depth) {
+    public void methodQuery(String command) {
         // use MethodAnalyzer to do method query
+        //解析command的参数
+        //传cu给analyzer
+        String[] commandList=command.split(" ");
+        String methodName=commandList[1];
+        String className=commandList[2];
+        int depth=Integer.parseInt(commandList[3]);
+        ArrayList<String> paramList=new ArrayList<>();
 
+        for(int i=4;i<commandList.length; i++){
+            paramList.add(commandList[i]);
+        }
+        this.methodAnalyzer=new MethodAnalyzer(this.compilationUnits);
+        this.methodAnalyzer.analyze(methodName, className, depth, paramList);
     }
 
     public void parameterQuery(String parameterName, String className) {

@@ -12,6 +12,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.group05.analyzer.dataStructure.ClassNode;
 import org.group05.analyzer.dataStructure.Index;
 import org.group05.analyzer.dataStructure.MethodInfo;
+import org.group05.analyzer.dataStructure.TransmissionClass;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,8 @@ import java.util.Optional;
 
 public class MethodAnalyzer {
     private ArrayList<ClassNode> classes;
+    private int myDepth;
+    private TransmissionClass myResult=new TransmissionClass("method");
 
     public MethodAnalyzer(ArrayList<CompilationUnit> cus) {
         this.classes = new ArrayList<>();
@@ -218,6 +221,79 @@ public class MethodAnalyzer {
                 }
             }
             return -1;
+        }
+    }
+    public void analyze(String methodName, String className, int depth,ArrayList<String> paramList){
+        boolean flag=false;
+        ArrayList<MethodInfo> myMethod=new ArrayList<MethodInfo>();
+        ArrayList<Index> myCallee=new ArrayList<Index>();
+        ArrayList<Index> myCaller=new ArrayList<Index>();
+        MethodInfo tempMethod=null;
+        ArrayList<Index> tempCallee=new ArrayList<Index>();
+        ArrayList<Index> tempCaller=new ArrayList<Index>();
+        this.myDepth = depth;
+
+        //First, find method according to the given command
+        for (ClassNode myclass : this.classes) {
+            if(myclass.getName().equals(className)){
+                //find method
+                tempMethod = myclass.getMethodByName(methodName,paramList);
+                if(tempMethod!=null){
+                    flag=true;
+                    myMethod.add(tempMethod);
+                    myResult.setMethodName(tempMethod.getName());
+                }
+            }
+        }
+        if(flag){
+            tempCallee = tempMethod.getCallees();
+            if(!tempCallee.isEmpty()){
+                for(Index i : tempCallee){
+                    DFSGetCallee(i,1);
+                }
+            }
+            tempCaller = tempMethod.getCallers();
+            if(!tempCaller.isEmpty()){
+                for(Index i : tempCaller){
+                    DFSGetCaller(i,1);
+                }
+            }
+        }
+
+        myResult.print();
+    }
+
+    public MethodInfo getMethodByIndex(Index methodIndex){
+        ClassNode tempclass=this.classes.get(methodIndex.getClassIndex());
+        return tempclass.getMethodByIndex(methodIndex.getMethodIndex());
+    }
+
+    public void DFSGetCallee(Index methodIndex, int depth){
+        MethodInfo m = getMethodByIndex(methodIndex);
+        ArrayList<Index> tempCallee = m.getCallees();
+        if(depth < this.myDepth && !tempCallee.isEmpty()){
+            //recursion
+            for(Index i : tempCallee){
+                myResult.addCallee(getMethodByIndex(methodIndex),depth);
+                DFSGetCallee(i,depth+1);
+            }
+        }
+        else{
+            myResult.addCallee(getMethodByIndex(methodIndex),depth);
+        }
+    }
+    public void DFSGetCaller(Index methodIndex, int depth){
+        MethodInfo m = getMethodByIndex(methodIndex);
+        ArrayList<Index> tempCaller = m.getCallers();
+        if(depth < this.myDepth && !tempCaller.isEmpty()){
+            //recursion
+            for(Index i : tempCaller){
+                myResult.addCaller(getMethodByIndex(methodIndex),depth);
+                DFSGetCaller(i,depth+1);
+            }
+        }
+        else{
+            myResult.addCaller(getMethodByIndex(methodIndex),depth);
         }
     }
 }
