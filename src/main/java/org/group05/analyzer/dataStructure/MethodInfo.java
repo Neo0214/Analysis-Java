@@ -24,9 +24,21 @@ public class MethodInfo {
         return parameters;
     }
 
+    /**
+     * This method is used to check whether two methods are the same.
+     * @param methodInfo the method to be compared
+     * @return true if the two methods are the same, false otherwise
+     */
     public boolean isSame(MethodInfo methodInfo){
         return this.name.equals(methodInfo.getName()) && checkParameters(this.parameters,methodInfo.getParameters());
     }
+
+    /**
+     * This method is used to check whether two methods have the same parameters.
+     * @param parameters1 the list of parameters of the first method
+     * @param parameters2 the list of parameters of the second method
+     * @return true if the two methods have the same parameters, false otherwise
+     */
     private boolean checkParameters(ArrayList<String> parameters1, ArrayList<String> parameters2){
         if(parameters1.size()!=parameters2.size()){
             return false;

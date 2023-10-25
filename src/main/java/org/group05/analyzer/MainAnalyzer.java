@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-// MainAnalyzer should make AST for files, I recommend to create thread for efficiency.
-// This part hasn't been implemented yet
+
 public class MainAnalyzer {
     private File project;
     private ArrayList<String> fileList;
@@ -35,6 +34,11 @@ public class MainAnalyzer {
         setRootPath(filePath);
     }
 
+    /**
+     * setRootPath
+     * @param filePath the path of the project
+     * @return true if the project has java file
+    */
     public boolean setRootPath(String filePath) {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
@@ -53,8 +57,7 @@ public class MainAnalyzer {
 
     public void methodQuery(String command) {
         // use MethodAnalyzer to do method query
-        //解析command的参数
-        //传cu给analyzer
+
         String[] commandList=command.split(" ");
         String methodName=commandList[1];
         String className=commandList[2];

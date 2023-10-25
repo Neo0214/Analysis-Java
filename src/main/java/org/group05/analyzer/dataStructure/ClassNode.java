@@ -33,6 +33,12 @@ public class ClassNode {
         return fileName;
     }
 
+    /**
+     * This method is used to get the index of the method in the method list.
+     * @param methodName the name of the method
+     * @param paramList the list of parameters of the method
+     * @return the index of the method in the method list
+     */
     public MethodInfo getMethodByName(String methodName, ArrayList<String> paramList){
         for(MethodInfo mymethod :this.methods){
             if(methodName.equals(mymethod.getName()) && paramList.equals(mymethod.getParameters())){

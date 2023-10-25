@@ -29,7 +29,7 @@ public class MethodNode {
     }
 
     public void removeCalledMethod(CallRecord call){
-        // System.out.println("删掉至"+call.getCalleeMethod().getMethodName()+"的边");
+
         CallRecords.remove(call);
     }
     private void setClassName(String className) {
@@ -55,13 +55,20 @@ public class MethodNode {
         return MethodName;
     }
 
-    //judges if another MethodNode has the same MethodName and ClassName with this one
+    /**
+     * This method is used to check whether two methods are the same.
+     * @param method the method to be compared
+     * @return true if the two methods are the same, false otherwise
+     */
     public boolean euqalsto(MethodNode method){
         return this.getMethodName().equals(method.getMethodName()) && this.getClassName().equals(method.getClassName());
     }
 
 
-    //merges another MethodNode which has the same ClassName and MethodName with this MethodNode
+    /**
+     * This method is used to merge the calling relation of two methods.
+     * @param method the method to be merged
+     */
     public void mergeCall(MethodNode method){
         for(CallRecord call : method.CallRecords){
             this.CallRecords.add(call);
@@ -69,7 +76,7 @@ public class MethodNode {
     }
 
 
-    //print the calling relation according to the saved information
+
     public void printMethodCalled(){
         System.out.print("ClassName : "+ClassName+", MethodName : "+MethodName);
         System.out.print(", CallerArgs : ");
@@ -88,7 +95,7 @@ public class MethodNode {
             System.out.print("  "+callerMethod.getMethodName());
             //被调用的方法
             System.out.print(" calls : "+calledMethod.getMethodName());
-            //被调用方法的所属类
+
             if(calledMethod.getMethodName()!=null){
                 System.out.print("(Class:"+calledMethod.getClassName()+')');
             }

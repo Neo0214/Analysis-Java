@@ -29,6 +29,10 @@ public class MethodAnalyzer {
         readCus(cus);
     }
 
+    /**
+     * This method is used to read the compilation units and generate the class nodes.
+     * @param cus the list of compilation units
+     */
     private void readCus(ArrayList<CompilationUnit> cus) {
 
         // first, we get class names and set class nodes
@@ -83,6 +87,11 @@ public class MethodAnalyzer {
     }
 
     private static class ClassVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
+        /**
+         * This method is used to visit the class or interface declaration.
+         * @param cid the class or interface declaration
+         * @param classes the list of class nodes
+         */
         @Override
         public void visit(ClassOrInterfaceDeclaration cid, ArrayList<ClassNode> classes) {
             if (!cid.isInterface() && cid.getParentNode().get() instanceof CompilationUnit) {  // only get class, not interface
@@ -96,6 +105,11 @@ public class MethodAnalyzer {
     }
 
     private static class MethodVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
+        /**
+         * This method is used to visit the method declaration.
+         * @param md the method declaration
+         * @param classes the list of class nodes
+         */
         @Override
         public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
 
@@ -126,6 +140,11 @@ public class MethodAnalyzer {
     }
 
     private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
+        /**
+         * This method is used to visit the method declaration.
+         * @param md the method declaration
+         * @param classes the list of class nodes
+         */
         @Override
         public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
             super.visit(md, classes);
@@ -157,7 +176,7 @@ public class MethodAnalyzer {
             for (MethodCallExpr methodCallExpr : methodCallExprs) {
                 // forbid system library call
                 // get callee name and parameters and class name
-                // 获取被调用方法的类名,而不是实例名
+
                 boolean flag = false;
                 Optional<Expression> scope = methodCallExpr.getScope();
                 if (scope.isEmpty()) {
@@ -224,6 +243,14 @@ public class MethodAnalyzer {
             return -1;
         }
     }
+
+    /**
+     * This method is used to analyze the method.
+     * @param methodName the name of the method
+     * @param className the name of the class
+     * @param depth the depth of the method
+     * @param paramList the list of parameters of the method
+     */
     public void analyze(String methodName, String className, int depth,ArrayList<String> paramList){
         boolean flag=false;
         ArrayList<MethodInfo> myMethod=new ArrayList<MethodInfo>();

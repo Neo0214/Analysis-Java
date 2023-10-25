@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"org.group05"},{"l":"org.group05.analyzer"},{"l":"org.group05.analyzer.dataStructure"},{"l":"org.group05.service"},{"l":"org.group05.ui"},{"l":"所有程序包","u":"allpackages-index.html"}];updateSearchResults();
+packageSearchIndex = [{"l":"org.group05"},{"l":"org.group05.analyzer"},{"l":"org.group05.analyzer.dataStructure"},{"l":"org.group05.ui"},{"l":"所有程序包","u":"allpackages-index.html"}];updateSearchResults();
