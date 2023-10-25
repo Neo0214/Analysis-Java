@@ -281,7 +281,7 @@ public class MethodAnalyzer {
         ArrayList<Index> tempCallee=new ArrayList<Index>();
         ArrayList<Index> tempCaller=new ArrayList<Index>();
         this.myDepth = depth;
-
+        System.out.println("============================================================");
         //First, find method according to the given command
         for (ClassNode myclass : this.classes) {
             if(myclass.getName().equals(className)){
@@ -295,6 +295,7 @@ public class MethodAnalyzer {
             }
         }
         if(flag){
+            System.out.println("successfully find this method,querying...");
             tempCallee = tempMethod.getCallees();
             if(!tempCallee.isEmpty()){
                 for(Index i : tempCallee){
@@ -310,10 +311,9 @@ public class MethodAnalyzer {
             myResult.print();
         }
         else{
-            System.out.println("WARNING:Method not found!");
+            System.out.println("fail to find this method,please check your command");
         }
-
-
+        System.out.println("============================================================");
     }
 
     /**

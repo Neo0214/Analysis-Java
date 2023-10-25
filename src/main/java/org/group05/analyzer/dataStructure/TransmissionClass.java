@@ -39,28 +39,28 @@ public class TransmissionClass {
         }
     }
     public void print(){
-        System.out.println("method:"+this.methodName);
+        System.out.println("Method:\n    "+this.methodName);
         int d = 0;
-        System.out.println("callee:");
+        System.out.println("Callee:");
         if(!this.callee.isEmpty()){
             for(MethodInfo i : this.callee){
-                System.out.println("  method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + calleeDepth.get(d));
+                System.out.println("    method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + calleeDepth.get(d));
                 d++;
             }
         }
         else{
-            System.out.println("  [NONE]");
+            System.out.println("    [NONE]");
         }
         d=0;
-        System.out.println("caller:");
+        System.out.println("Caller:");
         if(!this.caller.isEmpty()){
             for(MethodInfo i : this.caller){
-                System.out.println("  method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + callerDepth.get(d));
+                System.out.println("    method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + callerDepth.get(d));
                 d++;
             }
         }
         else{
-            System.out.println("  [NONE]");
+            System.out.println("    [NONE]");
         }
     }
 }
