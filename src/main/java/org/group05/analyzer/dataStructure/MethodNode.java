@@ -6,9 +6,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Objects;
 
-/**
- * This class is used to store the information of a method(parameter analysis)
- */
 public class MethodNode {
     //the name of this method
     private String MethodName;
@@ -27,22 +24,12 @@ public class MethodNode {
     }
 
     //getters and setters
-    /**
-     * This method is used to add a method called by this method
-     * @param calledMethod the method called
-     * @param callerMethod the method that calls it
-     * @param args the parameters passed
-     */
     public void addCalledMethod(MethodNode calledMethod,MethodNode callerMethod,ArrayList<String>args) {
        CallRecords.add(new CallRecord(calledMethod,callerMethod,args));
     }
 
-    /**
-     * This method is used to add a method called by this method
-     * @param call the call record
-     */
     public void removeCalledMethod(CallRecord call){
-        System.out.println("delete to "+call.getCalleeMethod().getMethodName()+" 's edge");
+        // System.out.println("删掉至"+call.getCalleeMethod().getMethodName()+"的边");
         CallRecords.remove(call);
     }
     private void setClassName(String className) {
@@ -69,21 +56,12 @@ public class MethodNode {
     }
 
     //judges if another MethodNode has the same MethodName and ClassName with this one
-    /**
-     * This method is used to check whether the method is the same as another method
-     * @param method the method to be compared
-     * @return whether the method is the same as another method
-     */
     public boolean euqalsto(MethodNode method){
         return this.getMethodName().equals(method.getMethodName()) && this.getClassName().equals(method.getClassName());
     }
 
 
     //merges another MethodNode which has the same ClassName and MethodName with this MethodNode
-    /**
-     * This method is used to merge another MethodNode which has the same ClassName and MethodName with this MethodNode
-     * @param method the method to be merged
-     */
     public void mergeCall(MethodNode method){
         for(CallRecord call : method.CallRecords){
             this.CallRecords.add(call);
@@ -108,9 +86,9 @@ public class MethodNode {
             MethodNode calledMethod = call.getCalleeMethod();
             ArrayList<String> calledArgs = call.getArguments();
             System.out.print("  "+callerMethod.getMethodName());
-
+            //被调用的方法
             System.out.print(" calls : "+calledMethod.getMethodName());
-
+            //被调用方法的所属类
             if(calledMethod.getMethodName()!=null){
                 System.out.print("(Class:"+calledMethod.getClassName()+')');
             }
