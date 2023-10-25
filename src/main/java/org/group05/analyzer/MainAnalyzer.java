@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-// MainAnalyzer should make AST for files, I recommend to create thread for efficiency.
-// This part hasn't been implemented yet
+/**
+ * This class is used as a medium for the front end and the back end
+ */
 public class MainAnalyzer {
     private File project;
     private ArrayList<String> fileList;
@@ -35,6 +36,12 @@ public class MainAnalyzer {
         setRootPath(filePath);
     }
 
+    /**
+     * setRootPath
+     * set the root path of the project
+     * @param filePath the path of the project
+     * @return true if the path is valid
+     */
     public boolean setRootPath(String filePath) {
         File file = new File(filePath);
         if (file.isDirectory() && hasJavaFile(file)) {
@@ -51,10 +58,14 @@ public class MainAnalyzer {
 
 
 
+    /**
+     * methodQuery
+     * do method query
+     * @param command the command of method query
+     */
     public void methodQuery(String command) {
         // use MethodAnalyzer to do method query
-        //解析command的参数
-        //传cu给analyzer
+
         String[] commandList=command.split(" ");
         String methodName=commandList[1];
         String className=commandList[2];
@@ -68,21 +79,24 @@ public class MainAnalyzer {
         this.methodAnalyzer.analyze(methodName, className, depth, paramList);
     }
 
-    public void parameterQuery(String parameterName, String className) {
-        // use ParameterAnalyzer to do parameter query
-    }
+
 
     /**
      * hasJavaFile
      * check if the project has java file and set fileList as all java file
      *
-     * @return true if has java file
+     * @return true if the project has java file
      */
     private boolean hasJavaFile(File file) {
         accessFile(file);
         return !this.fileList.isEmpty();
     }
 
+    /**
+     * accessFile
+     * access all java file in the project
+     * @param file the file to be accessed
+     */
     private void accessFile(File file) {
         if (file.isDirectory()) {
             // if is directory, access all child files

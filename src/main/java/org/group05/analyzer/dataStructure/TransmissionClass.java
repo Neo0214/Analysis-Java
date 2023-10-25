@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import org.group05.analyzer.dataStructure.MethodInfo;
 import org.group05.analyzer.dataStructure.Index;
 
+/**
+ * This class is used to transmission information of a method
+ */
 public class TransmissionClass {
     //type of query
     private String queryName;

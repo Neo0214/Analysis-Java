@@ -3,6 +3,9 @@ package org.group05.analyzer.dataStructure;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+/**
+ * This class is used to store the information of a method
+ */
 public class MethodInfo {
     private String name;
     private ArrayList<String> parameters;
@@ -24,9 +27,21 @@ public class MethodInfo {
         return parameters;
     }
 
+    /**
+     * This method is used to check whether the method is the same as another method
+     * @param methodInfo the method to be compared
+     * @return whether the method is the same as another method
+     */
     public boolean isSame(MethodInfo methodInfo){
         return this.name.equals(methodInfo.getName()) && checkParameters(this.parameters,methodInfo.getParameters());
     }
+
+    /**
+     * This method is used to check whether the parameters are the same as another method
+     * @param parameters1 the parameters to be compared
+     * @param parameters2 the parameters to be compared
+     * @return whether the parameters are the same as another method
+     */
     private boolean checkParameters(ArrayList<String> parameters1, ArrayList<String> parameters2){
         if(parameters1.size()!=parameters2.size()){
             return false;
