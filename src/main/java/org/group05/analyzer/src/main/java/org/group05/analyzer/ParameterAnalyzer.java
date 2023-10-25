@@ -72,60 +72,63 @@ public class ParameterAnalyzer implements ParameterInterface {
         if (!findFlag) {
             System.out.println("fail to find this method,please check your command");
         }
-        //遍历所有的method节点，找到所有 有出边指向m 的，把这些出边提取到result里
-        for (MethodNode method : methodNodeList) {
-            ArrayList<CallRecord> callRecords = method.getMethodCalled();
-            for (CallRecord call : callRecords) {
-                if (call.getCalleeMethod().equals(m)) {
-                    result.add(call);
+        else {
+            //遍历所有的method节点，找到所有 有出边指向m 的，把这些出边提取到result里
+            for (MethodNode method : methodNodeList) {
+                ArrayList<CallRecord> callRecords = method.getMethodCalled();
+                for (CallRecord call : callRecords) {
+                    if (call.getCalleeMethod().equals(m)) {
+                        result.add(call);
+                    }
                 }
             }
-        }
-        //按照规定好的输出方式，逐个输出这些出边（发出者及其权重）
-        System.out.println(m.getClassName() + ':');
-        ArrayList<String> CallerArgs = m.getCallerArgs();
-        //打印正在查询的方法名及其形参
-        for (int i = 0; i < 4; i++) {
-            System.out.print(' ');
-        }
-        System.out.print(m.getMethodName() + '(');
-        for (int i = 0; i < CallerArgs.size(); i++) {
-            System.out.print(CallerArgs.get(i));
-            if (i < CallerArgs.size() - 1) {
-                System.out.print(", ");
-            }
-        }
-        System.out.print("):\n");
-        //打印数个形参分别的可能来源
-        for (int i = 0; i < CallerArgs.size(); i++) {
-            //缩进8格
-            for (int j = 0; j < 8; j++) {
+            //按照规定好的输出方式，逐个输出这些出边（发出者及其权重）
+
+            System.out.println(m.getClassName() + ':');
+            ArrayList<String> CallerArgs = m.getCallerArgs();
+            //打印正在查询的方法名及其形参
+            for (int i = 0; i < 4; i++) {
                 System.out.print(' ');
             }
-            System.out.println(CallerArgs.get(i) + ':');
-
-            //打印result中已获取的所有可能来源
-            for (CallRecord call : result) {
-                String CallerMethod = call.getCallerMethod().getClassName() + '.' + call.getCallerMethod().getMethodName();
-                ArrayList<String> args = call.getArguments();
-                if(i<args.size()) {
-                    for (int j = 0; j < 12; j++) {
-                        System.out.print(' ');
-                    }
-                    System.out.print('[');
-                    Tools.printArgSource(args.get(i), CallerMethod);
-                    for (int j = 0; j < call.getCallerMethod().getCallerArgs().size(); j++) {
-                        String arg = call.getCallerMethod().getCallerArgs().get(j);
-                        int size = arg.split(" ").length;  //用于获取形参的name，把type去掉
-                        //如果调用者的形参中有和调用传参的第i位相同的，就继续追溯下去，寻找间接调用
-                        if (args.get(i).equals(arg.split(" ")[size - 1])) {
-                            dfsFindSource(1, call.getCallerMethod(), j);
-                        }
-                    }
-                    System.out.print("]\n");
+            System.out.print(m.getMethodName() + '(');
+            for (int i = 0; i < CallerArgs.size(); i++) {
+                System.out.print(CallerArgs.get(i));
+                if (i < CallerArgs.size() - 1) {
+                    System.out.print(", ");
                 }
             }
-            System.out.println();
+            System.out.print("):\n");
+            //打印数个形参分别的可能来源
+            for (int i = 0; i < CallerArgs.size(); i++) {
+                //缩进8格
+                for (int j = 0; j < 8; j++) {
+                    System.out.print(' ');
+                }
+                System.out.println(CallerArgs.get(i) + ':');
+
+                //打印result中已获取的所有可能来源
+                for (CallRecord call : result) {
+                    String CallerMethod = call.getCallerMethod().getClassName() + '.' + call.getCallerMethod().getMethodName();
+                    ArrayList<String> args = call.getArguments();
+                    if (i < args.size()) {
+                        for (int j = 0; j < 12; j++) {
+                            System.out.print(' ');
+                        }
+                        System.out.print('[');
+                        Tools.printArgSource(args.get(i), CallerMethod);
+                        for (int j = 0; j < call.getCallerMethod().getCallerArgs().size(); j++) {
+                            String arg = call.getCallerMethod().getCallerArgs().get(j);
+                            int size = arg.split(" ").length;  //用于获取形参的name，把type去掉
+                            //如果调用者的形参中有和调用传参的第i位相同的，就继续追溯下去，寻找间接调用
+                            if (args.get(i).equals(arg.split(" ")[size - 1])) {
+                                dfsFindSource(1, call.getCallerMethod(), j);
+                            }
+                        }
+                        System.out.print("]\n");
+                    }
+                }
+                System.out.println();
+            }
         }
 
     }
