@@ -108,15 +108,22 @@ public class ParameterAnalyzer implements ParameterInterface {
             for (CallRecord call : result) {
                 String CallerMethod = call.getCallerMethod().getClassName() + '.' + call.getCallerMethod().getMethodName();
                 ArrayList<String> args = call.getArguments();
-                for (int j = 0; j < 12; j++) {
-                    System.out.print(' ');
+                if(i<args.size()) {
+                    for (int j = 0; j < 12; j++) {
+                        System.out.print(' ');
+                    }
+                    System.out.print('[');
+                    Tools.printArgSource(args.get(i), CallerMethod);
+                    for (int j = 0; j < call.getCallerMethod().getCallerArgs().size(); j++) {
+                        String arg = call.getCallerMethod().getCallerArgs().get(j);
+                        int size = arg.split(" ").length;  //用于获取形参的name，把type去掉
+                        //如果调用者的形参中有和调用传参的第i位相同的，就继续追溯下去，寻找间接调用
+                        if (args.get(i).equals(arg.split(" ")[size - 1])) {
+                            dfsFindSource(1, call.getCallerMethod(), j);
+                        }
+                    }
+                    System.out.print("]\n");
                 }
-                System.out.print('[');
-                Tools.printArgSource(args.get(i), CallerMethod);
-                if (call.isTransParam(i) != -1) {
-                    dfsFindSource(1, call.getCallerMethod());
-                }
-                System.out.print("]\n");
             }
             System.out.println();
         }
@@ -161,7 +168,8 @@ public class ParameterAnalyzer implements ParameterInterface {
         return null;
     }
 
-    public void dfsFindSource(int depth,MethodNode method) {
+    //order表示间接调用的参数所在位置，取值：0 ~ n-1
+    public void dfsFindSource(int depth,MethodNode method,int order) {
 
         /*
         if(depth>1) {
@@ -177,17 +185,26 @@ public class ParameterAnalyzer implements ParameterInterface {
 
         for (int i=0;i<inEdges.size();i++) {
             CallRecord call = inEdges.get(i);
-            for(int j=0;j<paramNum;j++) {
-                if (call.isTransParam(j) != -1) {
-                    String arg = call.getArguments().get(j);
+            MethodNode caller = call.getCallerMethod();
+            ArrayList<String> callerArgs = caller.getCallerArgs();
+            if(order<call.getArguments().size()) {
+                if (call.isTransParam(order) != -1) {
+                    String arg = call.getArguments().get(order);
                     String methodName = call.getCallerMethod().getClassName() + '.' + call.getCallerMethod().getMethodName();
                     System.out.print(" <-- ");
                     Tools.printArgSource(arg, methodName);
 
-                    dfsFindSource(depth + 1, call.getCallerMethod());
+                    for (int j = 0; j < callerArgs.size(); j++) {
+                        String callerArg = callerArgs.get(j);
+                        if (arg.equals(callerArg)) {
+                            dfsFindSource(depth + 1, caller, j);
+                        }
+                    }
+
                     break;
                 }
             }
+
         }
     }
 

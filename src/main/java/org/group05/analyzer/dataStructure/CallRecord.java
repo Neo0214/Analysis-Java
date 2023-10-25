@@ -37,7 +37,12 @@ public class CallRecord {
         return callerMethod;
     }
     public int isTransParam(int order) {
-        return transParam[order];
+        if(transParam.length!=0) {
+            return transParam[order];
+        }
+        else {
+            return 0;
+        }
     }
     public void setTrans(int order,int transParam){
         if(order<this.transParam.length) {
