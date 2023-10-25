@@ -112,7 +112,7 @@ public class MethodAnalyzer {
                 for (Parameter parameter : parameters) {
                     parameterList.add(parameter.getTypeAsString());
                 }
-                MethodInfo mi = new MethodInfo(methodName, parameterList);
+                MethodInfo mi = new MethodInfo(methodName, className, parameterList);
                 for (ClassNode cn : classes) {
                     if (cn.getName().equals(className)) {
                         cn.addMethod(mi);
@@ -146,7 +146,7 @@ public class MethodAnalyzer {
                 if (mdClassIndex == -1) {
                     return;
                 }
-                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(), parameterList), classes.get(mdClassIndex));
+                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(),"", parameterList), classes.get(mdClassIndex));
             }
             if (parent.get().getNameAsString().equals("ASTGenerator")) {
                 System.out.println("generateAST");
@@ -192,7 +192,7 @@ public class MethodAnalyzer {
                 if (classIndex == -1) {
                     continue;
                 }
-                int methodIndex = Tools.getMethodIndex(new MethodInfo(calledMethod, callArgs), classes.get(classIndex));
+                int methodIndex = Tools.getMethodIndex(new MethodInfo(calledMethod,"", callArgs), classes.get(classIndex));
                 Index calleeIndex = new Index(classIndex, methodIndex);  // set callee index
                 if (mdClassIndex == -1 || mdMethodIndex == -1 || classIndex == -1 || methodIndex == -1) {
                     continue;
@@ -225,9 +225,6 @@ public class MethodAnalyzer {
     }
     public void analyze(String methodName, String className, int depth,ArrayList<String> paramList){
         boolean flag=false;
-        ArrayList<MethodInfo> myMethod=new ArrayList<MethodInfo>();
-        ArrayList<Index> myCallee=new ArrayList<Index>();
-        ArrayList<Index> myCaller=new ArrayList<Index>();
         MethodInfo tempMethod=null;
         ArrayList<Index> tempCallee=new ArrayList<Index>();
         ArrayList<Index> tempCaller=new ArrayList<Index>();
@@ -240,8 +237,8 @@ public class MethodAnalyzer {
                 tempMethod = myclass.getMethodByName(methodName,paramList);
                 if(tempMethod!=null){
                     flag=true;
-                    myMethod.add(tempMethod);
                     myResult.setMethodName(tempMethod.getName());
+                    break;
                 }
             }
         }
@@ -258,9 +255,13 @@ public class MethodAnalyzer {
                     DFSGetCaller(i,1);
                 }
             }
+            myResult.print();
+        }
+        else{
+            System.out.println("WARNING:Method not found!");
         }
 
-        myResult.print();
+
     }
 
     public MethodInfo getMethodByIndex(Index methodIndex){

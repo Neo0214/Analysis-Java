@@ -5,12 +5,14 @@ import java.util.ArrayList;
 
 public class MethodInfo {
     private String name;
+    private String className;
     private ArrayList<String> parameters;
     private ArrayList<Index> callee;
     private ArrayList<Index> caller;
 
-    public MethodInfo(String name, ArrayList<String> parameters){
+    public MethodInfo(String name, String classname, ArrayList<String> parameters){
         this.name= name;
+        this.className=classname;
         this.parameters = parameters;
         callee = new ArrayList<>();
         caller = new ArrayList<>();
@@ -19,7 +21,9 @@ public class MethodInfo {
     public String getName() {
         return name;
     }
-
+    public String getClassName() {
+        return className;
+    }
     public ArrayList<String> getParameters() {
         return parameters;
     }
