@@ -14,11 +14,11 @@ public class TransmissionClass {
 
     //Information of callees
     private ArrayList<MethodInfo> callee = new ArrayList<>();
-    private ArrayList calleeDepth = new ArrayList<>();
+    private ArrayList<Integer> calleeDepth = new ArrayList<>();
 
     //Information of callers
     private ArrayList<MethodInfo> caller = new ArrayList<>();
-    private ArrayList callerDepth = new ArrayList<>();
+    private ArrayList<Integer> callerDepth = new ArrayList<>();
 
     public TransmissionClass(String queryname){
         this.queryName=queryname;
@@ -27,12 +27,16 @@ public class TransmissionClass {
         this.methodName=name;
     }
     public void addCallee(MethodInfo m, int depth){
-        this.callee.add(m);
-        this.calleeDepth.add(depth);
+        if(this.callee.indexOf(m)==-1 || this.calleeDepth.get(this.callee.indexOf(m)) != depth){
+            this.callee.add(m);
+            this.calleeDepth.add(depth);
+        }
     }
     public void addCaller(MethodInfo m, int depth){
-        this.caller.add(m);
-        this.callerDepth.add(depth);
+        if(this.caller.indexOf(m)==-1 || this.callerDepth.get(this.caller.indexOf(m)) != depth){
+            this.caller.add(m);
+            this.callerDepth.add(depth);
+        }
     }
     public void print(){
         System.out.println("method:"+this.methodName);
@@ -40,23 +44,23 @@ public class TransmissionClass {
         System.out.println("callee:");
         if(!this.callee.isEmpty()){
             for(MethodInfo i : this.callee){
-                System.out.println(i.getName() + "  depth:" + calleeDepth.get(d));
+                System.out.println("  method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + calleeDepth.get(d));
                 d++;
             }
         }
         else{
-            System.out.println(" [NONE]");
+            System.out.println("  [NONE]");
         }
         d=0;
         System.out.println("caller:");
         if(!this.caller.isEmpty()){
             for(MethodInfo i : this.caller){
-                System.out.println(i.getName() + "  depth:" + callerDepth.get(d));
+                System.out.println("  method:" + i.getName() + "  class:" + i.getClassName() + "  parameters:" + i.getParameters() + "  depth:" + callerDepth.get(d));
                 d++;
             }
         }
         else{
-            System.out.println(" [NONE]");
+            System.out.println("  [NONE]");
         }
     }
 }
