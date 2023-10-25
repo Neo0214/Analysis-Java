@@ -30,8 +30,8 @@ public class MethodAnalyzer {
     }
 
     private void readCus(ArrayList<CompilationUnit> cus) {
-        // first, we get class names and set class nodes
 
+        // first, we get class names and set class nodes
         for (CompilationUnit cu : cus) {
             ClassVisitor classVisitor = new ClassVisitor();
             classVisitor.visit(cu, classes);
@@ -136,6 +136,7 @@ public class MethodAnalyzer {
             if (parent.isPresent()) {
                 ClassOrInterfaceDeclaration cid = parent.get();
                 String className = cid.getNameAsString();
+                // get parameters
                 List<Parameter> arguments = md.getParameters();
                 ArrayList<String> parameterList = new ArrayList<>();
                 for (Parameter parameter : arguments) {
