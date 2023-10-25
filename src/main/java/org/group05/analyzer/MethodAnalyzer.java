@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * This class is used for analysing the method call relationship
+ */
 public class MethodAnalyzer {
     private ArrayList<ClassNode> classes;
     private int myDepth;
@@ -30,8 +33,8 @@ public class MethodAnalyzer {
     }
 
     /**
-     * This method is used to read the compilation units and generate the class nodes.
-     * @param cus the list of compilation units
+     * This method is used to read all CompilationUnits and set class nodes and method nodes
+     * @param cus
      */
     private void readCus(ArrayList<CompilationUnit> cus) {
 
@@ -52,45 +55,48 @@ public class MethodAnalyzer {
             MethodCallVisitor methodCallVisitor = new MethodCallVisitor();
             methodCallVisitor.visit(cu, classes);
         }
-        for (ClassNode classNode : classes) {
-            printClass(classNode);
-            System.out.println();
-        }
+//        for (ClassNode classNode : classes) {
+//            printClass(classNode);
+//            System.out.println();
+//        }
     }
 
-    public void printClass(ClassNode classNode) {
-        System.out.println("class name: " + classNode.getName());
-        ArrayList<MethodInfo> mds = classNode.getMethods();
-        for (MethodInfo md : mds) {
-            System.out.println("method name: " + md.getName());
-            ArrayList<String> parameters = md.getParameters();
-            System.out.print("parameters: ");
-            for (String parameter : parameters) {
-                System.out.print(parameter + " ");
-            }
-            System.out.println();
-            ArrayList<Index> callees = md.getCallees();
-            System.out.print("callees: ");
-            for (Index callee : callees) {
-                System.out.println(callee.getClassIndex() + " " + callee.getMethodIndex());
-            }
-            System.out.println();
-            ArrayList<Index> callers = md.getCallers();
-            System.out.print("callers: ");
-            for (Index caller : callers) {
-                System.out.println(caller.getClassIndex() + " " + caller.getMethodIndex());
-            }
-            System.out.println();
-        }
+//    public void printClass(ClassNode classNode) {
+//        System.out.println("class name: " + classNode.getName());
+//        ArrayList<MethodInfo> mds = classNode.getMethods();
+//        for (MethodInfo md : mds) {
+//            System.out.println("method name: " + md.getName());
+//            ArrayList<String> parameters = md.getParameters();
+//            System.out.print("parameters: ");
+//            for (String parameter : parameters) {
+//                System.out.print(parameter + " ");
+//            }
+//            System.out.println();
+//            ArrayList<Index> callees = md.getCallees();
+//            System.out.print("callees: ");
+//            for (Index callee : callees) {
+//                System.out.println(callee.getClassIndex() + " " + callee.getMethodIndex());
+//            }
+//            System.out.println();
+//            ArrayList<Index> callers = md.getCallers();
+//            System.out.print("callers: ");
+//            for (Index caller : callers) {
+//                System.out.println(caller.getClassIndex() + " " + caller.getMethodIndex());
+//            }
+//            System.out.println();
+//        }
+//
+//
+//    }
 
-
-    }
-
+    /**
+     * This class is used to get class nodes
+     */
     private static class ClassVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
         /**
-         * This method is used to visit the class or interface declaration.
-         * @param cid the class or interface declaration
-         * @param classes the list of class nodes
+         * This method is used to get class nodes
+         * @param cid class or interface declaration
+         * @param classes class nodes list
          */
         @Override
         public void visit(ClassOrInterfaceDeclaration cid, ArrayList<ClassNode> classes) {
@@ -104,11 +110,14 @@ public class MethodAnalyzer {
         }
     }
 
+    /**
+     * This class is used to get method nodes
+     */
     private static class MethodVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
         /**
-         * This method is used to visit the method declaration.
-         * @param md the method declaration
-         * @param classes the list of class nodes
+         * This method is used to get method nodes
+         * @param md method declaration
+         * @param classes class nodes list
          */
         @Override
         public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
@@ -126,7 +135,7 @@ public class MethodAnalyzer {
                 for (Parameter parameter : parameters) {
                     parameterList.add(parameter.getTypeAsString());
                 }
-                MethodInfo mi = new MethodInfo(methodName, parameterList);
+                MethodInfo mi = new MethodInfo(methodName, className, parameterList);
                 for (ClassNode cn : classes) {
                     if (cn.getName().equals(className)) {
                         cn.addMethod(mi);
@@ -139,11 +148,14 @@ public class MethodAnalyzer {
         }
     }
 
+    /**
+     * This class is used to get callee and caller
+     */
     private static class MethodCallVisitor extends VoidVisitorAdapter<ArrayList<ClassNode>> {
         /**
-         * This method is used to visit the method declaration.
-         * @param md the method declaration
-         * @param classes the list of class nodes
+         * This method is used to get callee and caller
+         * @param md method declaration
+         * @param classes class nodes list
          */
         @Override
         public void visit(MethodDeclaration md, ArrayList<ClassNode> classes) {
@@ -166,17 +178,14 @@ public class MethodAnalyzer {
                 if (mdClassIndex == -1) {
                     return;
                 }
-                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(), parameterList), classes.get(mdClassIndex));
-            }
-            if (parent.get().getNameAsString().equals("ASTGenerator")) {
-                System.out.println("generateAST");
+                mdMethodIndex = Tools.getMethodIndex(new MethodInfo(md.getNameAsString(),"", parameterList), classes.get(mdClassIndex));
             }
             // get md's method call
             List<MethodCallExpr> methodCallExprs = md.findAll(MethodCallExpr.class);
             for (MethodCallExpr methodCallExpr : methodCallExprs) {
                 // forbid system library call
                 // get callee name and parameters and class name
-
+                // 获取被调用方法的类名,而不是实例名
                 boolean flag = false;
                 Optional<Expression> scope = methodCallExpr.getScope();
                 if (scope.isEmpty()) {
@@ -194,9 +203,6 @@ public class MethodAnalyzer {
                     continue;
                 }
                 String calledMethod = methodCallExpr.getNameAsString();
-                if (calledMethod.equals("parseJavaFile")) {
-                    System.out.println("execInstruction");
-                }
 
                 List<Expression> arguments = methodCallExpr.getArguments();
                 ArrayList<String> callArgs = new ArrayList<>();
@@ -212,7 +218,7 @@ public class MethodAnalyzer {
                 if (classIndex == -1) {
                     continue;
                 }
-                int methodIndex = Tools.getMethodIndex(new MethodInfo(calledMethod, callArgs), classes.get(classIndex));
+                int methodIndex = Tools.getMethodIndex(new MethodInfo(calledMethod,"", callArgs), classes.get(classIndex));
                 Index calleeIndex = new Index(classIndex, methodIndex);  // set callee index
                 if (mdClassIndex == -1 || mdMethodIndex == -1 || classIndex == -1 || methodIndex == -1) {
                     continue;
@@ -224,6 +230,12 @@ public class MethodAnalyzer {
     }
 
     private static class Tools {
+        /**
+         * This method is used to get class index
+         * @param classes class nodes list
+         * @param className class name
+         * @return class index
+         */
         public static int getClassIndex(ArrayList<ClassNode> classes, String className) {
             for (int i = 0; i < classes.size(); i++) {
                 if (classes.get(i).getName().equals(className)) {
@@ -233,6 +245,12 @@ public class MethodAnalyzer {
             return -1;
         }
 
+        /**
+         * This method is used to get method index
+         * @param mi method info
+         * @param cv class node
+         * @return method index
+         */
         public static int getMethodIndex(MethodInfo mi, ClassNode cv) {
             ArrayList<MethodInfo> methods = cv.getMethods();
             for (int i = 0; i < methods.size(); i++) {
@@ -245,21 +263,19 @@ public class MethodAnalyzer {
     }
 
     /**
-     * This method is used to analyze the method.
+     * This method is used to analyze the method call relationship
      * @param methodName the name of the method
      * @param className the name of the class
-     * @param depth the depth of the method
-     * @param paramList the list of parameters of the method
+     * @param depth the depth of the method call relationship
+     * @param paramList the parameters of the method
      */
     public void analyze(String methodName, String className, int depth,ArrayList<String> paramList){
         boolean flag=false;
-        ArrayList<MethodInfo> myMethod=new ArrayList<MethodInfo>();
-        ArrayList<Index> myCallee=new ArrayList<Index>();
-        ArrayList<Index> myCaller=new ArrayList<Index>();
         MethodInfo tempMethod=null;
         ArrayList<Index> tempCallee=new ArrayList<Index>();
         ArrayList<Index> tempCaller=new ArrayList<Index>();
         this.myDepth = depth;
+        this.myResult=new TransmissionClass("method");
         System.out.println("============================================================");
         //First, find method according to the given command
         for (ClassNode myclass : this.classes) {
@@ -268,8 +284,8 @@ public class MethodAnalyzer {
                 tempMethod = myclass.getMethodByName(methodName,paramList);
                 if(tempMethod!=null){
                     flag=true;
-                    myMethod.add(tempMethod);
                     myResult.setMethodName(tempMethod.getName());
+                    break;
                 }
             }
         }
@@ -287,16 +303,29 @@ public class MethodAnalyzer {
                     DFSGetCaller(i,1);
                 }
             }
+            myResult.print();
         }
-
-        myResult.print();
+        else{
+            System.out.println("fail to find this method,please check your command");
+        }
+        System.out.println("============================================================");
     }
 
+    /**
+     * This method is used to get method by index
+     * @param methodIndex the index of the method
+     * @return the method
+     */
     public MethodInfo getMethodByIndex(Index methodIndex){
         ClassNode tempclass=this.classes.get(methodIndex.getClassIndex());
         return tempclass.getMethodByIndex(methodIndex.getMethodIndex());
     }
 
+    /**
+     * This method is used to get callee
+     * @param methodIndex the index of the method
+     * @param depth the depth of the method call relationship
+     */
     public void DFSGetCallee(Index methodIndex, int depth){
         MethodInfo m = getMethodByIndex(methodIndex);
         ArrayList<Index> tempCallee = m.getCallees();
@@ -311,6 +340,12 @@ public class MethodAnalyzer {
             myResult.addCallee(getMethodByIndex(methodIndex),depth);
         }
     }
+
+    /**
+     * This method is used to get caller
+     * @param methodIndex the index of the method
+     * @param depth the depth of the method call relationship
+     */
     public void DFSGetCaller(Index methodIndex, int depth){
         MethodInfo m = getMethodByIndex(methodIndex);
         ArrayList<Index> tempCaller = m.getCallers();

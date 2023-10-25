@@ -89,7 +89,7 @@ public class UserInteraction {
             mainAnalyzer.parameterQuery(command);
         }
         else{
-            putMessage("Wrong instruction,correct it:'method method_name class_name depth_of_search' or 'parameter method_name class_name'\n");
+            putMessage("Wrong instruction,correct it:'method method_name class_name depth_of_search parameter[0] parameter[1]...' or 'parameter method_name class_name'\n");
         }
     }
 
@@ -102,7 +102,15 @@ public class UserInteraction {
     private boolean isMethodQuery(String command){
         String[] commandList=command.split(" ");
         //return commandList.length == 4 && commandList[0].equals("method");
-        return commandList[0].equals("method");
+        if(commandList.length < 4){
+            return false;
+        }
+        try {
+            int depth = Integer.parseInt(commandList[3]);
+            return commandList[0].equals("method");
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
     /**
      * isParameterQuery
@@ -161,7 +169,7 @@ public class UserInteraction {
      * after prompt, it should change to input mode
      */
     private void putPrompt() {
-        putMessage("press ESC at any time to command mode to change project path, etc.\n");
+        putMessage("press q to go to command mode to change project path, etc.\n");
         putMessage("Enter your java project path:\n");
     }
 

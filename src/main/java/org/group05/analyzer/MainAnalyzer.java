@@ -45,7 +45,7 @@ public class MainAnalyzer {
             this.project = file;
             compilationUnits = ASTGenerator.generateAST(fileList,filePath);
 
-            //this.methodAnalyzer = new MethodAnalyzer(compilationUnits);
+            this.methodAnalyzer = new MethodAnalyzer(compilationUnits);
             this.parameterAnalyzer = new ParameterAnalyzer(compilationUnits);
             return true;
         } else {
@@ -67,7 +67,7 @@ public class MainAnalyzer {
         for(int i=4;i<commandList.length; i++){
             paramList.add(commandList[i]);
         }
-        this.methodAnalyzer=new MethodAnalyzer(this.compilationUnits);
+        //this.methodAnalyzer=new MethodAnalyzer(this.compilationUnits);
         this.methodAnalyzer.analyze(methodName, className, depth, paramList);
     }
 
