@@ -29,16 +29,25 @@ public class ASTGenerator {
         methodNodeList = new ArrayList<>();
     }
 
+    // 打印java代码源文件的所有内容（测试用）
+    private void printJavaFile(File javaFile) {
+        System.out.println(javaFile);
+        try (BufferedReader reader = new BufferedReader(new FileReader(javaFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-    /**
-     * This method is used to load the AST
-     * @param javaFile the file
-     */
+    // 解析Java源代码文件,将方法调用关系加入到方法调用图中
     private static CompilationUnit parseJavaFile(File javaFile) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(javaFile);
             return cu;
-
+            // 创建一个访问者来查找方法调用关系
             //new MethodCallVisitor().visit(cu, methodNodeList);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -46,18 +55,12 @@ public class ASTGenerator {
         return null;
     }
 
-    /**
-     * This method is used to load the project's AST
-     * @param files the list of files
-     * @param filePath the path of the project
-     * @return the AST
-     */
     public static ArrayList<CompilationUnit> generateAST(ArrayList<String> files, String filePath) {
         //ASTGenerator analyzer = new ASTGenerator();
         //analyzer.loadProject(filePath);
         //System.out.println("打印得到的方法调用关系如下：");
         ArrayList<CompilationUnit> cus = new ArrayList<>();
-        //
+        // 创建类型解析器
         CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver());
         String srcPath = filePath + "/src/main/java";
